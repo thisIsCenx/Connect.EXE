@@ -1,11 +1,11 @@
-package com.movietheater.auth.controller;
+package com.connectexe.ConnectEXE.auth.controller;
 
-import com.movietheater.auth.dto.request.LoginRequest;
-import com.movietheater.auth.dto.response.LoginResponse;
-import com.movietheater.auth.service.LoginService;
-import com.movietheater.common.constant.AuthorityConst;
-import com.movietheater.common.constant.RouteConst;
-import com.movietheater.util.CookieUtil;
+import com.connectexe.ConnectEXE.auth.dto.request.LoginRequest;
+import com.connectexe.ConnectEXE.auth.dto.response.LoginResponse;
+import com.connectexe.ConnectEXE.auth.service.LoginService;
+import com.connectexe.ConnectEXE.common.constant.AuthorityConst;
+import com.connectexe.ConnectEXE.common.constant.RouteConst;
+import com.connectexe.ConnectEXE.util.CookieUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,10 +40,10 @@ public class LoginController {
             @RequestBody LoginRequest request,
             HttpServletResponse response) {
         LoginResponse loginResponse = loginService.login(request.getEmailOrPhone(), request.getPassword());
-        CookieUtil.addCookie(response, "userId", String.valueOf(loginResponse.getUserId()), COOKIE_MAX_AGE);
-        CookieUtil.addCookie(response, "fullName", loginResponse.getFullName(), COOKIE_MAX_AGE);
-        CookieUtil.addCookie(response, "role", loginResponse.getRole(), COOKIE_MAX_AGE);
-        CookieUtil.addCookie(response, "status", loginResponse.getStatus(), COOKIE_MAX_AGE);
+    CookieUtil.addCookie(response, "userId", String.valueOf(loginResponse.getUserId()), COOKIE_MAX_AGE);
+    CookieUtil.addCookie(response, "fullName", loginResponse.getFullName(), COOKIE_MAX_AGE);
+    CookieUtil.addCookie(response, "role", loginResponse.getRole(), COOKIE_MAX_AGE);
+    CookieUtil.addCookie(response, "status", String.valueOf(loginResponse.isActive()), COOKIE_MAX_AGE);
         return ResponseEntity.ok(loginResponse);
     }
 
