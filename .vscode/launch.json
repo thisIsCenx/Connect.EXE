@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-ConnectExeApplication<ConnectEXE>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.connectexe.ConnectEXE.ConnectExeApplication",
+            "projectName": "ConnectEXE",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

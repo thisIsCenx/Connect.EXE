@@ -1,0 +1,221 @@
+.movie-banner {
+  width: 280px;
+  height: 500px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    
+    .banner-overlay {
+      opacity: 1;
+    }
+    
+    .banner-image {
+      transform: scale(1.05);
+    }
+  }
+
+  &.cinemamax-banner {
+    border: 4px dashed #ef4444;
+  }
+
+  &.moviehub-banner {
+    border: 4px dashed #eab308;
+  }
+}
+
+// Sidebar Banner Positioning - Dời vào trong
+.sidebar-banner {
+  position: fixed;
+  top: 120px;
+  z-index: 100;
+  animation: slideIn 0.8s ease-out;
+
+  &.left-banner {
+    left: 10px; 
+  }
+
+  &.right-banner {
+    right: 10px; 
+  }
+
+  // Ẩn banner trên màn hình nhỏ
+  @media (max-width: 1400px) {
+    display: none;
+  }
+
+  // Điều chỉnh vị trí cho màn hình nhỏ hơn
+  @media (max-width: 1600px) {
+    top: 100px;
+    
+    &.left-banner {
+      left: 40px;
+    }
+
+    &.right-banner {
+      right: 40px;
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-100px) translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+  }
+}
+
+.film-strip {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+
+  &.top {
+    top: 0;
+  }
+
+  &.bottom {
+    bottom: 0;
+  }
+
+  .cinemamax-banner & {
+    background-color: #ef4444;
+  }
+
+  .moviehub-banner & {
+    background-color: #eab308;
+  }
+}
+
+.film-holes {
+  display: flex;
+  gap: 6px;
+}
+
+.film-hole {
+  width: 14px;
+  height: 14px;
+  background-color: white;
+  border-radius: 2px;
+}
+
+// Image Container
+.banner-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+// Overlay Content
+.banner-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.6) 50%,
+    transparent 100%
+  );
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+
+.overlay-content {
+  text-align: center;
+  color: white;
+}
+
+.overlay-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+
+  &.cinemamax {
+    color: #60a5fa;
+  }
+
+  &.moviehub {
+    color: #c084fc;
+  }
+}
+
+.overlay-subtitle {
+  font-size: 14px;
+  margin-bottom: 12px;
+  opacity: 0.9;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.overlay-button {
+  background: linear-gradient(45deg, #ef4444, #dc2626);
+  color: white;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  }
+
+  &.moviehub {
+    background: linear-gradient(45deg, #eab308, #ca8a04);
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);
+    }
+  }
+}
+
+// Alternative: Always show overlay (nếu bạn muốn luôn hiển thị)
+.movie-banner.always-show-overlay .banner-overlay {
+  opacity: 1;
+}
+
+// Responsive adjustments
+@media (max-width: 1600px) {
+  .movie-banner {
+    width: 260px;
+    height: 460px;
+  }
+}
+
+@media (max-width: 1400px) {
+  .movie-banner {
+    width: 240px;
+    height: 420px;
+  }
+}

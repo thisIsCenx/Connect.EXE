@@ -1,0 +1,202 @@
+/* Dark marketing register page layout - matches Login design */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+.login-page, .register-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at top left, #1b0038 0%, #0b1530 40%, #020617 100%);
+  padding: 48px 20px;
+}
+
+.auth-card {
+  width: 1100px;
+  max-width: calc(100% - 40px);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  gap: 0;
+  box-shadow: 0 20px 60px rgba(4,6,22,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.auth-left { flex: 1 1 580px; padding: 56px; color: #fff; }
+.auth-right { width: 420px; position: relative; }
+.auth-right::before { content: ""; position: absolute; inset: 18px; border-radius: 14px; background-image: url('/assets/auth-hero.jpg'); background-size: cover; background-position: center; opacity: 0.95; }
+
+@media (max-width: 980px) {
+  .auth-card { flex-direction: column-reverse; width: 96vw; }
+  .auth-right { width: 100%; height: 320px; }
+  .auth-left { padding: 28px; }
+}
+
+// ========== VERIFY OVERLAY ==========
+
+.verify-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.verify-modal {
+  background: #fff;
+  padding: 2.5rem 2.5rem;
+  border-radius: 16px;
+  max-width: 450px;
+  width: 100%;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  position: relative;
+  min-height: 400px;
+
+  .btn-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #999;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+
+    &:hover {
+      color: #b71c1c;
+      background-color: #f5f5f5;
+      transform: scale(1.1);
+    }
+  }
+
+  .verify-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    background-color: #fafafa;
+
+    &:focus {
+      outline: none;
+      border-color: #b71c1c;
+      background-color: #fff;
+      box-shadow: 0 0 0 3px rgba(183, 28, 28, 0.1);
+    }
+  }
+
+  .verify-msg {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #d32f2f;
+    font-size: 13px;
+    margin: 8px 0 12px;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0 0 0 18px;
+  }
+}
+
+// Responsive design
+@media (max-width: 480px) {
+  .verify-modal {
+    margin: 20px;
+    padding: 1.5rem 1rem;
+    max-width: calc(100vw - 40px);
+    min-height: 350px;
+
+    .verify-title {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .verify-desc {
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .verify-email {
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .verify-label {
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .verify-input {
+      padding: 10px 12px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .verify-msg {
+      font-size: 12px;
+      margin: 6px 0 10px;
+      padding: 6px 10px;
+    }
+
+    .expire-time {
+      margin-top: 12px;
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+
+    .verify-button-group {
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+
+      button {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 13px;
+        min-width: auto;
+      }
+    }
+
+    .success-msg {
+      margin-top: 12px;
+      font-size: 12px;
+      padding: 6px 10px;
+    }
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .verify-modal {
+    max-width: 500px;
+    min-height: 450px;
+    padding: 2rem 2rem;
+
+    .verify-button-group {
+      gap: 20px;
+
+      button {
+        padding: 16px 28px;
+        font-size: 15px;
+        min-width: 140px;
+      }
+    }
+  }
+}

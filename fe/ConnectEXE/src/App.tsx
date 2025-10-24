@@ -1,35 +1,45 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { ConfigProvider } from 'antd';
+import 'antd/dist/reset.css';
+import { Suspense } from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import ForgotPasswordPage from './pages/Auth/ForgotPasswordPage';
+import { Home } from './components/home';
+import { RouteConst } from './constants/RouteConst';
+import LoginPage from './pages/Auth/LoginPage';
+import { RegisterPage } from './pages/Auth/RegisterPage';
+import AdminDashboard from './pages/Dashboard/AdminDashboard';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: '#d91c0f',
+          colorPrimaryHover: '#b91c1c',
+          borderRadius: 8,
+        },
+      }}
+    >
+        <Suspense fallback="Loading...">
+          <BrowserRouter>
+            <Routes>
+              <Route path={RouteConst.HOME} element={<Home />} />
+              <Route path={RouteConst.LOGIN} element={<LoginPage />} />
+              <Route path={RouteConst.REGISTER} element={<RegisterPage />} />
+              {/* Admin routes */}
+              <Route path={RouteConst.ADMIN.ROOT} element={<AdminDashboard />}>
+                <Route path={RouteConst.ADMIN.USERS} element={<div>User Management</div>} />
+              </Route>
+              <Route
+                path={RouteConst.FORGOT_PASSWORD}
+                element={<ForgotPasswordPage />}
+              />
+              <Route path="*" element={<Navigate to={RouteConst.HOME} replace />} />
+            </Routes>
+          </BrowserRouter>
+        </Suspense>
+    </ConfigProvider>
+  );
 }
 
-export default App
+export default App;
