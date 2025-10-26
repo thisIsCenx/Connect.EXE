@@ -26,4 +26,6 @@ public class LoginResponse {
     private boolean isActive;
     /** Whether the user's email is verified. */
     private boolean isVerified;
+    /** Access token returned after successful login. */
+    private String token;
 }

@@ -169,3 +169,130 @@
 		gap: 10px;
 	}
 }
+
+/* ===== EX Header (template style) ===== */
+.ex-header {
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	background: radial-gradient(120% 120% at 0% 0%, #0f172a 0%, #0b1023 45%, #080d1d 100%);
+	border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.ex-header__inner {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 14px 20px;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.ex-brand {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+	color: #fff;
+	text-decoration: none;
+	white-space: nowrap;
+}
+.ex-logo {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	border-radius: 12px;
+	background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+	font-weight: 800;
+}
+.ex-wordmark {
+	font-size: 18px;
+	color: #e5e7eb;
+	letter-spacing: 0.2px;
+}
+
+.ex-nav {
+	margin-left: 12px;
+	flex: 1 1 auto;
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 10px 14px;
+	border: 1px solid rgba(255,255,255,0.14);
+	border-radius: 999px;
+	background: rgba(255,255,255,0.06);
+	backdrop-filter: blur(6px);
+}
+.ex-nav a {
+	color: #e5e7eb;
+	text-decoration: none;
+	font-weight: 500;
+	font-size: 14px;
+	padding: 6px 10px;
+	border-radius: 999px;
+}
+.ex-nav a:hover { background: rgba(255,255,255,0.12); }
+.ex-nav .ex-icon { padding: 6px; }
+.ex-divider { color: rgba(255,255,255,0.28); }
+
+.ex-actions {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.ex-login {
+	color: #cbd5e1;
+	text-decoration: none;
+	padding: 8px 10px;
+}
+.ex-signup {
+	color: #0b1023;
+	background: #fbbf24;
+	text-decoration: none;
+	padding: 8px 14px;
+	border-radius: 999px;
+	font-weight: 700;
+}
+.ex-signup:hover { filter: brightness(1.05); }
+
+.ex-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	border: 1px solid rgba(255,255,255,0.14);
+	background: rgba(255,255,255,0.06);
+	color: #e5e7eb;
+}
+
+/* Dropdown reused from component, tweak colors for dark header */
+.profile-dropdown {
+	position: absolute;
+	top: 42px;
+	right: 0;
+	background: #0f172a;
+	border: 1px solid rgba(255,255,255,0.12);
+	border-radius: 10px;
+	box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+	min-width: 190px;
+	z-index: 1000;
+}
+.profile-dropdown-item {
+	display: block;
+	width: 100%;
+	background: transparent;
+	border: none;
+	color: #e5e7eb;
+	text-align: left;
+	padding: 10px 14px;
+	cursor: pointer;
+}
+.profile-dropdown-item:hover { background: rgba(255,255,255,0.08); }
+
+@media (max-width: 920px) {
+	.ex-nav { display: none; }
+}

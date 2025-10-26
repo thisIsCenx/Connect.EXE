@@ -4,6 +4,7 @@ import com.connectexe.ConnectEXE.auth.dto.request.ChangePasswordRequestDTO;
 import com.connectexe.ConnectEXE.auth.dto.request.EditProfileRequestDTO;
 import com.connectexe.ConnectEXE.auth.service.ProfileService;
 import com.connectexe.ConnectEXE.common.constant.MessageConst;
+import com.connectexe.ConnectEXE.common.constant.RouteConst;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping(RouteConst.AUTH_BASE)
 public class ProfileController {
 
     private final ProfileService profileService;
@@ -34,7 +35,7 @@ public class ProfileController {
      * @param request HttpServletRequest to extract user info
      * @return ResponseEntity with operation result
      */
-    @PostMapping("/change-password")
+    @PostMapping(RouteConst.CHANGE_PASSWORD)
     public ResponseEntity<Map<String, Object>> changePassword(
             @RequestBody ChangePasswordRequestDTO dto,
             HttpServletRequest request) {
@@ -59,7 +60,7 @@ public class ProfileController {
      * @param request HttpServletRequest to extract user info
      * @return ResponseEntity with operation result
      */
-    @PostMapping("/edit-profile")
+    @PostMapping(RouteConst.EDIT_PROFILE)
     public ResponseEntity<Map<String, Object>> editProfile(
             @RequestBody EditProfileRequestDTO dto,
             HttpServletRequest request) {
@@ -83,7 +84,7 @@ public class ProfileController {
      * @param request HttpServletRequest to extract user info
      * @return ResponseEntity with profile data
      */
-    @GetMapping("/profile")
+    @GetMapping(RouteConst.PROFILE)
     public ResponseEntity<?> getProfile(HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -106,7 +107,7 @@ public class ProfileController {
      * @param request HttpServletRequest to extract user info
      * @return ResponseEntity with availability result
      */
-    @GetMapping("/check-email")
+    @GetMapping(RouteConst.CHECK_EMAIL)
     public ResponseEntity<Map<String, Object>> checkEmail(@RequestParam String email, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -128,7 +129,7 @@ public class ProfileController {
      * @param request HttpServletRequest to extract user info
      * @return ResponseEntity with availability result
      */
-    @GetMapping("/check-phone")
+    @GetMapping(RouteConst.CHECK_PHONE)
     public ResponseEntity<Map<String, Object>> checkPhone(@RequestParam String phone, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         try {

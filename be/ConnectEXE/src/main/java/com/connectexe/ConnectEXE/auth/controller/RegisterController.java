@@ -4,14 +4,12 @@ import com.connectexe.ConnectEXE.auth.dto.request.RegisterRequest;
 import com.connectexe.ConnectEXE.auth.dto.request.VerifyCodeRequest;
 import com.connectexe.ConnectEXE.auth.dto.response.RegisterResponse;
 import com.connectexe.ConnectEXE.auth.service.RegisterService;
-import com.connectexe.ConnectEXE.common.constant.AuthorityConst;
 import com.connectexe.ConnectEXE.common.constant.MessageConst;
 import com.connectexe.ConnectEXE.common.constant.RouteConst;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -37,18 +35,27 @@ public class RegisterController {
      * @param request the registration request containing user details
      * @return the registration response with a success or error message
      */
-    @PreAuthorize(AuthorityConst.AUTH_ALL)
     @PostMapping(RouteConst.REGISTER)
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         RegisterResponse response = registerService.register(request);
 
-        // Nếu có thông tin đã được sử dụng, trả về BAD_REQUEST
+        // If any duplicate info, return 409 Conflict with details
         if (response.isEmailUsed() || response.isPhoneUsed() || response.isIdentityCardUsed()) {
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.status(409).body(response);
         }
 
-        // Nếu đăng ký thành công, trả về OK
-        return ResponseEntity.ok(response);
+        // Triggers OTP send via the same logic used by /auth/otp/send (otptype=verification)
+        // We don't fail the registration if sending email has issues.
+        try {
+            registerService.resendVerificationCode(request.getEmail());
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            log.warn("Post-register OTP send skipped: {}", e.getMessage());
+        } catch (Exception e) {
+            log.warn("Post-register OTP send failed: {}", e.getMessage());
+        }
+
+        // On success return 201 Created with userId + token
+        return ResponseEntity.status(201).body(response);
     }
 
     /**
@@ -57,7 +64,6 @@ public class RegisterController {
      * @param request the verification request containing email and code
      * @return the verification response
      */
-    @PreAuthorize(AuthorityConst.AUTH_ALL)
     @PostMapping(RouteConst.REGISTER_VERIFY)
     public ResponseEntity<?> verifyCode(@Valid @RequestBody VerifyCodeRequest request) {
         try {
@@ -86,7 +92,6 @@ public class RegisterController {
      * @param request the request containing the user's email
      * @return the resend response
      */
-    @PreAuthorize(AuthorityConst.AUTH_ALL)
     @PostMapping(RouteConst.REGISTER_RESEND)
     public ResponseEntity<?> resendCode(@Valid @RequestBody VerifyCodeRequest request) {
         try {

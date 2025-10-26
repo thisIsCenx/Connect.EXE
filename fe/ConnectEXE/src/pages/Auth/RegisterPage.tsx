@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RegisterForm } from '../../components/auth/RegisterForm';
+import { RegisterForm } from '../../components/Auth/RegisterForm';
 import { register, verifyRegisterCode, resendRegisterCode, testApiConnection, testRegisterEndpoint } from '../../services/AuthService';
 import type { RegisterRequestDTO } from '../../types/request/AuthRequestDTO';
 import './styles/RegisterPage.scss';
-import { RegisterVerifyOTP } from '../../components/auth/RegisterVerifyOTP';
+import { RegisterVerifyOTP } from '../../components/Auth/RegisterVerifyOTP';
 
 export const RegisterPage = () => {
   const [form, setForm] = useState<RegisterRequestDTO & { confirmPassword: string }>({

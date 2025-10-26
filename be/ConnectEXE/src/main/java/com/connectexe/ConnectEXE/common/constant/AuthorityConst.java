@@ -8,7 +8,7 @@ public class AuthorityConst {
     public static final String AUTH_ROLE_EMPLOYEE = "hasRole('ROLE_EMPLOYEE')";
     public static final String AUTH_ROLE_USER = "hasRole('ROLE_USER')";
     public static final String AUTH_ANONYMOUS = "isAnonymous()";
-    public static final String AUTH_ALL = "permitAll";
+    public static final String AUTH_ALL = "permitAll()";
     public static final String ROLE_EMPLOYEE = "EMPLOYEE";
 
 }

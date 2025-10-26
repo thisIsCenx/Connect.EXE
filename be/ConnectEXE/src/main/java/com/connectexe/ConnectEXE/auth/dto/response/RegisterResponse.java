@@ -24,4 +24,8 @@ public class RegisterResponse {
     private boolean phoneUsed;
     /** Whether the identity card is already used. */
     private boolean identityCardUsed;
+    /** Created user id when registration succeeds. */
+    private String userId;
+    /** Access token returned after registration. */
+    private String token;
 }

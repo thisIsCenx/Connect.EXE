@@ -1,4 +1,4 @@
-import EditProfileForm from '../../components/auth/EditProfileForm';
+import EditProfileForm from '../../components/Auth/EditProfileForm';
 import './styles/EditProfilePage.scss';
 
 export default function EditProfilePage() {
