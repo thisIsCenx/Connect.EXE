@@ -1,4 +1,4 @@
-export { default as LoginForm } from './LoginForm';
+export { default as LoginForm } from './Loginform';
 export { RegisterForm } from './RegisterForm';
 export { default as ForgotPasswordForm } from './ForgotPasswordForm';
 export { default as ChangePassword } from './ChangePassword';

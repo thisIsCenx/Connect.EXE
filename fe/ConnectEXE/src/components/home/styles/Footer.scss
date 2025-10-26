@@ -198,3 +198,85 @@
     text-align: center;
   }
 } 
+
+/* ===== EX Footer (template style) ===== */
+.ex-footer {
+  margin-top: 60px;
+  background: radial-gradient(120% 120% at 0% 0%, #0f172a 0%, #0b1023 45%, #080d1d 100%);
+  color: #e5e7eb;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.ex-footer__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 36px 20px 22px;
+}
+.ex-footer__columns {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 22px;
+}
+.ex-footer__col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ex-footer__title {
+  color: #93c5fd;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.6px;
+}
+.ex-footer__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.ex-footer a { color: #cbd5e1; text-decoration: none; }
+.ex-footer a:hover { color: #fff; text-decoration: underline; }
+
+.ex-footer__office .ex-footer__item { font-size: 14px; }
+
+.ex-footer__socials { display: flex; gap: 10px; }
+.ex-footer__socials a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+}
+.ex-footer__socials a:hover { background: rgba(255,255,255,0.16); }
+
+.ex-footer__bottom {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 13px;
+}
+.ex-footer__legal { display: flex; align-items: center; gap: 10px; }
+
+.ex-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+  font-weight: 800; color: #0b1023;
+}
+.ex-wordmark { color: #e5e7eb; }
+
+@media (max-width: 920px) {
+  .ex-footer__columns { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .ex-footer__columns { grid-template-columns: 1fr; }
+  .ex-footer__bottom { flex-direction: column; align-items: flex-start; }
+}

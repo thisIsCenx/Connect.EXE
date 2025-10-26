@@ -4,12 +4,10 @@ import com.connectexe.ConnectEXE.auth.dto.request.ForgotPasswordRequestDTO;
 import com.connectexe.ConnectEXE.auth.dto.request.ResetPasswordRequestDTO;
 import com.connectexe.ConnectEXE.auth.dto.request.VerifyOtpRequestDTO;
 import com.connectexe.ConnectEXE.auth.service.ForgotPasswordService;
-import com.connectexe.ConnectEXE.common.constant.AuthorityConst;
 import com.connectexe.ConnectEXE.common.constant.RouteConst;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,7 +33,6 @@ public class ForgotPasswordController {
      * @param email the user's email
      * @return a response map indicating success or failure
      */
-    @PreAuthorize(AuthorityConst.AUTH_ALL)
     @PostMapping(RouteConst.PASSWORD_FORGOT)
     public ResponseEntity<Map<String, Object>> forgotPassword(@RequestBody ForgotPasswordRequestDTO request) {
         Map<String, Object> response = forgotPasswordService.sendOtp(request.getEmail());
@@ -51,7 +48,6 @@ public class ForgotPasswordController {
      * @param otp   the OTP to verify
      * @return a response map indicating success or failure
      */
-    @PreAuthorize(AuthorityConst.AUTH_ALL)
     @PostMapping(RouteConst.PASSWORD_VERIFY)
     public ResponseEntity<Map<String, Object>> verifyOtp(@RequestBody VerifyOtpRequestDTO request) {
         Map<String, Object> response = forgotPasswordService.verifyOtp(request.getEmail(), request.getOtp());
@@ -67,7 +63,6 @@ public class ForgotPasswordController {
      * @param newPassword the new password
      * @return a response map indicating success or failure
      */
-    @PreAuthorize(AuthorityConst.AUTH_ALL)
     @PostMapping(RouteConst.PASSWORD_RESET)
     public ResponseEntity<Map<String, Object>> resetPassword(@RequestBody ResetPasswordRequestDTO request) {
         Map<String, Object> response = forgotPasswordService.resetPassword(request.getEmail(),

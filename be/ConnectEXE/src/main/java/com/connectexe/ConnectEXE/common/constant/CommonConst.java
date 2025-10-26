@@ -62,8 +62,9 @@ public class CommonConst {
     public static final int OTP_RESEND_LIMIT = 5;
     public static final int OTP_FAILED_LIMIT = 5;
     public static final int OTP_EXPIRE_MINUTES = 5;
-    public static final String OTP_TYPE_REGISTER = "register";
-    public static final String OTP_TYPE_FORGOT = "forgot";
+    // OTP type values must match the database CHECK constraint on otp_codes. Allowed: verification, reset_password, two_factor
+    public static final String OTP_TYPE_REGISTER = "verification";
+    public static final String OTP_TYPE_FORGOT = "reset_password";
 
     private CommonConst() {
         // Private constructor to prevent instantiation

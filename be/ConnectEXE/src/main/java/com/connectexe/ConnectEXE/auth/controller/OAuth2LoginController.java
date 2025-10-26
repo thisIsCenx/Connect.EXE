@@ -50,7 +50,7 @@ public class OAuth2LoginController {
 
             String target = switch (user.getRole()) {
                 case "ADMIN" -> "http://localhost:3000/admin";
-                case "EMPLOYEE" -> "http://localhost:3000/employee";
+                case "TEACHER" -> "http://localhost:3000/teacher";
                 default -> "http://localhost:3000/home";
             };
 

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import com.connectexe.ConnectEXE.util.IdUtil;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -60,7 +61,7 @@ public class RegisterServiceImpl implements RegisterService {
                     .build();
         }
 
-        // Tạo user mới
+    // Tạo user mới
         User user = new User();
     // Generate DB-compatible userId (12 hex chars)
     user.setUserId(IdUtil.randomHex(12));
@@ -76,31 +77,34 @@ public class RegisterServiceImpl implements RegisterService {
     user.setIsActive(true);
     user.setIsVerified(false);
 
-        userRepository.save(user);
-
-    // Tạo OTP verification using OtpCode entity
-    LocalDateTime now = LocalDateTime.now();
-    String otp = String.format("%06d", new SecureRandom().nextInt(1_000_000));
-
-    OtpCode otpCode = new OtpCode();
-    otpCode.setOtpId(IdUtil.randomHex(10));
-    otpCode.setUserId(user.getUserId());
-    // store OTP as plain 6-digit string (matches DB column length)
-    otpCode.setOtpCode(otp);
-    otpCode.setOtpType(CommonConst.OTP_TYPE_REGISTER);
-    otpCode.setCreatedAt(now);
-    otpCode.setExpiryAt(now.plusMinutes(CommonConst.OTP_EXPIRE_MINUTES));
-    otpCode.setIsUsed(false);
-
-    otpCodeRepository.save(otpCode);
-    mailService.sendVerificationEmail(request.getEmail(), otp, CommonConst.OTP_TYPE_REGISTER);
-
+        try {
+            userRepository.save(user);
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+        // Handle race conditions where uniqueness is enforced at DB level
+        boolean emailUsed2 = userRepository.existsByEmail(request.getEmail());
+        boolean phoneUsed2 = userRepository.existsByPhoneNumber(request.getPhoneNumber());
+        boolean identityCardUsed2 = userRepository.existsByIdentityCard(request.getIdentityCard());
+        log.warn("Registration failed due to DB constraint - Email used: {}, Phone used: {}, Identity card used: {}",
+            emailUsed2, phoneUsed2, identityCardUsed2);
         return RegisterResponse.builder()
-                .message(MessageConst.MSG_REGISTER_SUCCESS)
-                .emailUsed(false)
-                .phoneUsed(false)
-                .identityCardUsed(false)
-                .build();
+            .message(MessageConst.MSG_REGISTER_INFO_USED)
+            .emailUsed(emailUsed2)
+            .phoneUsed(phoneUsed2)
+            .identityCardUsed(identityCardUsed2)
+            .build();
+    }
+
+    // create a simple token for the newly registered user. Replace with proper token generation (JWT) later.
+    String token = UUID.randomUUID().toString();
+
+    return RegisterResponse.builder()
+        .message(MessageConst.MSG_REGISTER_SUCCESS)
+        .emailUsed(false)
+        .phoneUsed(false)
+        .identityCardUsed(false)
+        .userId(user.getUserId())
+        .token(token)
+        .build();
     }
 
     /**
