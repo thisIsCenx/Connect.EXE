@@ -1,6 +1,6 @@
 // src/constants/RouteConst.ts
 export const RouteConst = {
-  HOME: '/home',
+  HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',

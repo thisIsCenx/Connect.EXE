@@ -1,10 +1,12 @@
 // src/components/Header.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Cookies from 'js-cookie';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './styles/Header.scss';
 import { FaUserCircle } from 'react-icons/fa';
 import { RouteConst } from '../../constants/RouteConst';
+import { STORAGE_KEYS } from '../../constants/AuthConst';
+import { API_BASE_URL } from '../../constants/ApiConst';
 
 interface BreadcrumbItem {
   text: string;
@@ -31,32 +33,57 @@ function decodeCookieValue(value?: string) {
   return decodeURIComponent(value.replace(/\+/g, ' '));
 }
 
-const Header: React.FC<HeaderProps> = ({ breadcrumbs, onStepChange, onEditProfile, onChangePassword }) => {
+const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePassword }) => {
   // translations removed
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const userId = Cookies.get('userId');
-    const fullName = decodeCookieValue(Cookies.get('fullName'));
-    const role = decodeCookieValue(Cookies.get('role'));
-    const status = decodeCookieValue(Cookies.get('status'));
+  const location = useLocation();
 
-    if (userId && fullName && role && status) {
-      setUser({
-        userId: Number(userId),
-        fullName,
-        role,
-        status,
-      });
-    } else {
-      setUser(null);
+  const readUserFromClient = useCallback(() => {
+    // Prefer cookies (set by backend)
+    const cookieUserId = Cookies.get('userId');
+    const cookieFullName = decodeCookieValue(Cookies.get('fullName'));
+    const cookieRole = decodeCookieValue(Cookies.get('role'));
+    const cookieStatus = decodeCookieValue(Cookies.get('status'));
+
+    if (cookieUserId && cookieFullName && cookieRole && cookieStatus) {
+      return {
+        userId: Number(cookieUserId),
+        fullName: cookieFullName,
+        role: cookieRole,
+        status: cookieStatus,
+      } as User;
     }
 
-    // language switching removed; LanguageSwitcher component retained for UI but it will not change translations
+    // Fallback to localStorage (set by FE after login)
+    const lsUserId = localStorage.getItem(STORAGE_KEYS.USER_ID);
+    const lsFullName = localStorage.getItem(STORAGE_KEYS.USER_NAME) || '';
+    const lsRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE) || '';
+    if (lsUserId && lsFullName && lsRole) {
+      return {
+        userId: Number(lsUserId),
+        fullName: lsFullName,
+        role: lsRole,
+        status: 'ACTIVE',
+      } as User;
+    }
+
+    return null;
   }, []);
+
+  useEffect(() => {
+    setUser(readUserFromClient());
+    // language switching removed
+  }, [readUserFromClient, location.pathname]);
+
+  useEffect(() => {
+    const onAuthChanged = () => setUser(readUserFromClient());
+    window.addEventListener('auth:changed', onAuthChanged as EventListener);
+    return () => window.removeEventListener('auth:changed', onAuthChanged as EventListener);
+  }, [readUserFromClient]);
 
   useEffect(() => {
     if (!isProfileDropdownOpen) return;
@@ -73,66 +100,86 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onStepChange, onEditProfil
   const handleLogout = async () => {
     setLoading(true);
     try {
-      await fetch('http://localhost:8080/api/login/logout', {
+      // Call logout endpoint
+      await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
     } catch (err) {
       console.error('Logout failed:', err);
     }
+    
+    // Clear all user data
     setUser(null);
+    
+    // Clear cookies
     Cookies.remove('userId');
     Cookies.remove('fullName');
     Cookies.remove('role');
     Cookies.remove('status');
+    
+    // Clear localStorage
+    localStorage.removeItem('userId');
+    localStorage.removeItem('fullName');
+    localStorage.removeItem('role');
+    localStorage.removeItem('register_email');
+    localStorage.clear(); // Clear all stored data
+    
+    // Clear sessionStorage
+    sessionStorage.clear();
+    
     setLoading(false);
+    
+    // Notify other components about auth change
+    window.dispatchEvent(new Event('auth:changed'));
+    
+    // Navigate to login page
     navigate('/login');
+    
+    // Force page reload to ensure complete session cleanup
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return (
     <>
       <header className="ex-header">
         <div className="ex-header__inner">
-          {/* Logo */}
-          <Link to={RouteConst.HOME} className="ex-brand" aria-label="EX Connect">
-            <span className="ex-logo">EX</span>
-            <span className="ex-wordmark">Connect.<b>exe</b></span>
+          {/* Logo - exact Wix style */}
+          <Link to={RouteConst.HOME} className="wix-logo" aria-label="Connect EXE">
+            <div className="logo-container">
+              <span className="logo-symbol">⚡</span>
+              <span className="logo-text">Connect</span>
+            </div>
+            <span className="logo-exe">exe</span>
           </Link>
 
-          {/* Nav pill */}
-          <nav className="ex-nav">
-            <Link to={RouteConst.HOME}>Trang chủ</Link>
-            <a href="#" onClick={(e)=>{e.preventDefault(); onStepChange?.('movies')}}>Sản phẩm</a>
-            <a href="#" onClick={(e)=>{e.preventDefault(); onStepChange?.('theaters')}}>Diễn đàn</a>
-            <a href="#" onClick={(e)=>{e.preventDefault(); onStepChange?.('score')}}>Dự án</a>
-            <a className="ex-icon" aria-label="Cart" href="#" onClick={(e)=>e.preventDefault()}>🛍️</a>
-            <a className="ex-icon" aria-label="Search" href="#" onClick={(e)=>e.preventDefault()}>🔍</a>
-            <span className="ex-divider" aria-hidden>|</span>
-            <Link to={RouteConst.HOME}>Tin Tức</Link>
-            <Link to={RouteConst.HOME}>Khám phá dự án</Link>
-            <Link to={RouteConst.HOME}>Về chúng tôi</Link>
+          {/* Center Navigation - matching Wix menu */}
+          <nav className="center-nav">
+            <Link to={RouteConst.HOME} className="nav-item">Tin Tức</Link>
+            <Link to="/projects" className="nav-item nav-featured">Khám phá dự án</Link>
+            <Link to="/vote" className="nav-item">Bình chọn</Link>
+            <Link to="/forum" className="nav-item">Diễn đàn</Link>
           </nav>
 
-          {/* Right actions */}
-          <div className="ex-actions">
+          {/* Right actions - matching Wix SIGN IN button */}
+          <div className="header-actions">
             {user ? (
-              <div className="ex-user" style={{ position:'relative' }}>
-                <button className="ex-avatar" onClick={() => setIsProfileDropdownOpen(v=>!v)} aria-label="Profile">
-                  <FaUserCircle size={22} />
+              <div className="user-menu" style={{ position:'relative' }}>
+                <button className="user-avatar" onClick={() => setIsProfileDropdownOpen(v=>!v)} aria-label="Profile">
+                  <FaUserCircle size={20} />
                 </button>
                 {isProfileDropdownOpen && (
-                  <div className="profile-dropdown">
-                    <button className="profile-dropdown-item" onClick={() => { onEditProfile?.(); setIsProfileDropdownOpen(false); }}>✏️ Edit profile</button>
-                    <button className="profile-dropdown-item" onClick={() => { onChangePassword?.(); setIsProfileDropdownOpen(false); }}>🔒 Change password</button>
-                    <button className="profile-dropdown-item" style={{ color: '#d32f2f' }} onClick={handleLogout}>{loading ? 'Logging out...' : 'Logout'}</button>
+                  <div className="user-dropdown">
+                    <button className="dropdown-item" onClick={() => { onEditProfile?.(); setIsProfileDropdownOpen(false); }}>Chỉnh sửa hồ sơ</button>
+                    <button className="dropdown-item" onClick={() => { onChangePassword?.(); setIsProfileDropdownOpen(false); }}>Đổi mật khẩu</button>
+                    <button className="dropdown-item logout" onClick={handleLogout}>{loading ? 'Đang đăng xuất...' : 'Đăng xuất'}</button>
                   </div>
                 )}
               </div>
             ) : (
-              <>
-                <Link className="ex-login" to={RouteConst.LOGIN}>Login</Link>
-                <Link className="ex-signup" to={RouteConst.REGISTER}>Sign Up</Link>
-              </>
+              <Link className="sign-in-btn" to={RouteConst.LOGIN}>ĐĂNG NHẬP</Link>
             )}
           </div>
         </div>

@@ -59,7 +59,10 @@ export default function LoginForm() {
       localStorage.setItem(STORAGE_KEYS.USER_NAME, fullName);
       localStorage.setItem(STORAGE_KEYS.USER_ROLE, role);
 
-      switch (role) {
+  // notify header to refresh auth state
+  window.dispatchEvent(new Event('auth:changed'));
+
+  switch (role) {
         case USER_ROLES.ADMIN:
           navigate(RouteConst.ADMIN.ROOT);
           break;
@@ -71,19 +74,26 @@ export default function LoginForm() {
           break;
       }
     } catch (err: any) {
-  const rawMsg = err.response?.data?.originMessage || err.response?.data?.message || '';
-      let msg = 'Server error. Please try again.';
-      if (rawMsg === 'Email hoặc số điện thoại không tồn tại trong hệ thống.' || rawMsg === 'Email or phone number does not exist in the system.') {
-        msg = 'Email not found.';
-      } else if (rawMsg === 'Mật khẩu không đúng.' || rawMsg === 'Incorrect password.') {
-        msg = 'Incorrect password.';
-      } else if (rawMsg.includes('not active')) {
-        msg = 'Account is inactive.';
-      } else if (rawMsg.includes('not verified')) {
-        msg = 'Your email is not verified.';
-      } else if (rawMsg.includes('Invalid email/phone or password')) {
-        msg = 'Invalid credentials.';
+      const status = err?.response?.status as number | undefined;
+      const rawMsg: string = err?.response?.data?.originMessage || err?.response?.data?.message || '';
+      let msg = '';
+
+      if (status === 401) {
+        // Backend returns 401 with empty body -> normalize to user-friendly text
+        msg = 'Invalid email or password.';
+      } else if (status === 400) {
+        // Bad request with a message, if any
+        msg = rawMsg || 'Invalid request.';
+      } else if (status === 500) {
+        msg = 'Server error. Please try again later.';
+      } else if (!status) {
+        // Network / CORS / server down
+        msg = 'Cannot connect to server. Please check your network or try again.';
+      } else {
+        // Fallback to any message returned, else a generic one
+        msg = rawMsg || 'Unexpected error. Please try again.';
       }
+
       setError(msg);
     }
   };
@@ -108,8 +118,12 @@ export default function LoginForm() {
 
   return (
     <>
-      <form className="login-box" onSubmit={handleSubmit}>
+      <form className="login-box" onSubmit={handleSubmit} autoComplete="off">
   <h1 className="logo">Sign in</h1>
+
+        {/* Prevent browser password managers from suggesting/saving */}
+        <input type="text" name="_fake_username" autoComplete="username" style={{ display: 'none' }} aria-hidden="true" />
+        <input type="password" name="_fake_password" autoComplete="new-password" style={{ display: 'none' }} aria-hidden="true" />
 
         <div className="input-group">
             <label>Email</label>
@@ -121,6 +135,9 @@ export default function LoginForm() {
                 placeholder={'Email'}
                 value={form.email}
               onChange={handleChange}
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
             />
           </div>
         </div>
@@ -135,6 +152,11 @@ export default function LoginForm() {
               placeholder={'Password'}
               value={form.password}
               onChange={handleChange}
+              autoComplete="new-password"
+              autoCapitalize="none"
+              spellCheck={false}
+              data-lpignore="true"
+              data-1p-ignore
             />
             <span className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <FaEyeSlash /> : <FaEye />}

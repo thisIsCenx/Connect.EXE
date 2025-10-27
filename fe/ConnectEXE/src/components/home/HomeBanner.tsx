@@ -3,11 +3,11 @@ import type React from "react"
 import moviePosterImage from "../../assets/img/bannerhomemovie1.webp"
 import moviePosterImage2 from "../../assets/img/bannerhomemovie2.png"
 
-interface MovieBannerProps {
+interface HomeBannerProps {
   type?: "cinemamax" | "moviehub"
 }
 
-const MovieBanner: React.FC<MovieBannerProps> = ({ type = "cinemamax" }) => {
+const HomeBanner: React.FC<HomeBannerProps> = ({ type = "cinemamax" }) => {
   if (type === "moviehub") {
     return (
       <div className="movie-banner moviehub-banner">
@@ -93,4 +93,4 @@ const MovieBanner: React.FC<MovieBannerProps> = ({ type = "cinemamax" }) => {
   )
 }
 
-export default MovieBanner
+export default HomeBanner

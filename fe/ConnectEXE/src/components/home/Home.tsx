@@ -1,133 +1,255 @@
-import React, { useEffect, useState } from "react"
-import { useOAuthRedirect } from "../../hooks/useOAuthRedirect"
-import Header from "./Header"
-import Footer from "./Footer"
-import { Carousel } from "antd"
-import axios from "axios"
-import "./styles/MovieBanner.scss"
+import React, { useEffect, useMemo } from "react";
+import Header from "./Header";
+import Footer from "./Footer";
+import './styles/HomeBanner.scss';
+import './styles/Home.scss';
 
 const Home: React.FC = () => {
-  // Handle OAuth redirect query params (store user info in localStorage)
-  useOAuthRedirect()
+  // Wix-style project data with real images placeholder
+  const DEFAULT_POSTER = useMemo(
+    () =>
+      "data:image/svg+xml;charset=utf-8," +
+      encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'>` +
+          `<defs><linearGradient id='bg' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='#667eea'/><stop offset='100%' stop-color='#764ba2'/></linearGradient></defs>` +
+          `<rect width='400' height='300' fill='url(#bg)'/>` +
+          `<rect x='20' y='20' width='360' height='260' rx='12' fill='rgba(0,0,0,0.3)'/>` +
+          `<g fill='white' font-family='Inter,Arial' text-anchor='middle'>` +
+            `<text x='200' y='160' font-size='18' font-weight='600'>Project Image</text>` +
+          `</g>` +
+        `</svg>`
+      ),
+    []
+  );
 
-  const [topMovies, setTopMovies] = useState<any[]>([])
-
-  useEffect(() => {
-    // fetch top banners (fall back to placeholders)
-    axios
-      .get("/api/admin/movie/top-booked")
-      .then((res) => {
-        const moviesWithFullPoster = (res.data || []).map((m: any) => ({
-          ...m,
-          posterUrl:
-            m?.posterUrl && String(m.posterUrl).startsWith("http")
-              ? m.posterUrl
-              : m?.posterUrl
-              ? `http://localhost:8080${m.posterUrl}`
-              : "/default-poster.png",
-        }))
-        setTopMovies(moviesWithFullPoster)
-      })
-      .catch(() => {
-        // ignore errors; UI will render placeholders
-      })
-  }, [])
-
-  const slides = (() => {
-    const s = topMovies.slice(0, 5)
-    while (s.length < 5) {
-      s.push({ posterUrl: "/default-poster.png", title: "" })
-    }
-    return s
-  })()
-
-  const breadcrumbs = [
-    {
-      text: "Home",
-      step: "home" as const,
-      onClick: () => {},
+  const featuredProjects = [
+    { 
+      id: 1, 
+      title: "WINDOU", 
+      desc: "Windou là ứng dụng thông minh tích hợp trí tuệ nhân tạo trong tính toán và thương mại hóa rác thải tái chế thông qua tín chỉ Carbon.", 
+      img: DEFAULT_POSTER,
+      number: "1"
     },
-  ]
+    { 
+      id: 2, 
+      title: "DELIGENT", 
+      desc: "Deligent là nền tảng thiết kế áo thun và phụ kiện ứng dụng Trí tuệ nhân tạo tiên phong đi đầu tại Việt Nam.", 
+      img: DEFAULT_POSTER,
+      number: "2"
+    },
+    { 
+      id: 3, 
+      title: "SENONIKA", 
+      desc: "SENONIKA là thương hiệu hàng đầu về giày dép ứng dụng công nghệ in 3D tại Việt Nam, nhằm tạo ra sản phẩm thân thiện môi trường, đơn giản hóa chuỗi cung ứng và nâng cao tính bền vững.", 
+      img: DEFAULT_POSTER,
+      number: "3"
+    },
+  ];
+
+  const galleryImages = [
+    DEFAULT_POSTER, DEFAULT_POSTER, DEFAULT_POSTER, DEFAULT_POSTER, DEFAULT_POSTER, DEFAULT_POSTER
+  ];
+
+  const statsData = [
+    { number: "105+", label: "Nhà khởi nghiệp trẻ", color: "blue" },
+    { number: "15+", label: "Startup gọi vốn thành công", color: "gray" },
+    { number: "48+", label: "Dự án công nghệ", color: "green" },
+  ];
+
+  const partners = [
+    "/// Image", "POLAR", "Eembreeque", "Ocean"
+  ];
+
+  const voteTeams = [
+    { id: 1, name: "WINDOU", founder: "Nguyễn Đình Phong" },
+    { id: 2, name: "DELIGENT", founder: "Võ Quốc Thịnh" },
+    { id: 3, name: "SENONIKA", founder: "Nguyễn Minh Tân" },
+  ];
+
+  const forumArticles = [
+    { 
+      id: 1, 
+      title: "TOP 5 Dự án khởi nghiệp xuất sắc nhất FPT", 
+      source: "AGIAI Science Journal", 
+      date: "November 2035"
+    },
+    { 
+      id: 2, 
+      title: "Hồi ức Di sản: Khi nghệ thuật bài chòi bước vào thế giới công nghệ trẻ", 
+      source: "Biotech Frontier Review", 
+      date: "May 2035"
+    },
+    { 
+      id: 3, 
+      title: "DIMO: Giải pháp AI Motion Capture \"made in FPTU\"", 
+      source: "IBRM Magazine", 
+      date: "March 2035"
+    },
+  ];
+
+  // Scroll-reveal observer for elements with .reveal
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(el => el.classList.add('is-inview'));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-inview');
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { root: null, threshold: 0.15 }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
 
   return (
-    <>
-      <Header breadcrumbs={breadcrumbs} />
+    <div className="wix-homepage">
+      <Header breadcrumbs={[]} />
 
-      <main style={{ padding: "24px 16px" }}>
-        <section style={{ display: "flex", justifyContent: "center", margin: "32px 0" }}>
-          <div style={{ width: "100%", maxWidth: 1100, borderRadius: 20, overflow: "hidden" }}>
-            <Carousel autoplay dots arrows>
-              {slides.map((movie, idx) => (
-                <div key={idx} style={{ width: "100%" }}>
-                  <img
-                    src={movie.posterUrl}
-                    alt={movie.title || `slide-${idx}`}
-                    style={{ width: "100%", height: 520, objectFit: "cover", display: "block" }}
-                    onError={(e) => (e.currentTarget.src = "/default-poster.png")}
-                  />
-                </div>
-              ))}
-            </Carousel>
+      <main className="wix-main">
+        {/* Hero Section - Wix Style */}
+        <section className="wix-hero">
+          <div className="wix-hero-content">
+            <h1 className="wix-hero-title">Khám phá dự án khởi nghiệp tiêu biểu 2025</h1>
+            <button className="wix-cta-button">Khám phá ngay</button>
           </div>
         </section>
 
-        <section style={{ maxWidth: 1100, margin: "24px auto", display: "flex", gap: 24 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-              <div style={{ flex: "0 0 220px", color: "#fff" }}>
-                <h1 style={{ fontSize: 56, margin: 0 }}>50+</h1>
-                <p style={{ marginTop: 8 }}>Hợp tác với các nhà khởi nghiệp trẻ</p>
-              </div>
-
-              <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
-                <div style={{ background: "rgba(255,255,255,0.04)", padding: 16, borderRadius: 12 }}>
-                  <div style={{ fontSize: 20, fontWeight: 700 }}>102</div>
-                  <div style={{ fontSize: 12 }}>Dự án công nghệ</div>
-                </div>
-                <div style={{ background: "rgba(255,255,255,0.04)", padding: 16, borderRadius: 12 }}>
-                  <div style={{ fontSize: 20, fontWeight: 700 }}>20+</div>
-                  <div style={{ fontSize: 12 }}>Dự án thành công trên thị trường</div>
-                </div>
-                <div style={{ background: "rgba(255,255,255,0.04)", padding: 16, borderRadius: 12 }}>
-                  <div style={{ fontSize: 20, fontWeight: 700 }}>10+</div>
-                  <div style={{ fontSize: 12 }}>Dự án được vinh danh</div>
-                </div>
-              </div>
+        {/* Gallery Section - "Hơn 50+ nhà khởi nghiệp trẻ" */}
+        <section className="wix-gallery-section">
+          <div className="wix-gallery-header">
+            <h2 className="wix-section-title">Hơn 50+ nhà khởi nghiệp trẻ</h2>
+            <div className="wix-gallery-stats">
+              <span>48+ dự án công nghệ</span>
+              <span>20+ dự án công nghiệp</span>
+              <span>10+ dự án tái tạo môi trường</span>
             </div>
           </div>
-
-          <aside style={{ width: 360, background: "linear-gradient(135deg,#5b17ff,#ff5ec7)", padding: 20, borderRadius: 16, color: "#fff" }}>
-            <h3 style={{ marginTop: 0 }}>Khám Phá Thêm Các Dự Án Khởi Nghiệp Tiêu Biểu</h3>
-            <p style={{ fontSize: 14 }}>Khám phá các nhà khởi nghiệp tiêu biểu qua các dự án công nghệ.</p>
-            <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-              <button style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "none", background: "rgba(255,255,255,0.12)", color: "#fff" }}>
-                Khám Phá
-              </button>
-              <button style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "none", background: "rgba(255,255,255,0.2)", color: "#fff" }}>
-                Learn More
-              </button>
-            </div>
-          </aside>
+          <div className="wix-gallery-grid">
+            {galleryImages.map((img, i) => (
+              <div key={i} className="wix-gallery-item reveal">
+                <img src={img} alt={`Gallery ${i + 1}`} loading="lazy" decoding="async" />
+              </div>
+            ))}
+          </div>
         </section>
 
-        {/* Additional content preview (optional) */}
-        <section style={{ maxWidth: 1100, margin: "32px auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 16 }}>
-            <div style={{ height: 220, borderRadius: 12, background: "linear-gradient(135deg,#0b1224,#20153a)", color: "#fff", padding: 20 }}>
-              <h4>Transform Ideas into Reality</h4>
-              <p>Power of AI at Your Fingertips · AI Partner for Smarter</p>
-            </div>
-            <div style={{ height: 220, borderRadius: 12, background: "linear-gradient(135deg,#1b2a52,#40186b)", color: "#fff", padding: 20 }}>
-              <h4>Dự án khởi nghiệp</h4>
-              <p>Những dự án tiêu biểu đang được phát triển.</p>
-            </div>
+        {/* Featured Projects 2025 - With overlay style */}
+        <section className="wix-featured-section">
+          <h2 className="wix-section-title">Dự án tiêu biểu nhất 2025</h2>
+          <p className="wix-featured-subtitle">Trải nghiệm học tập cá nhân hóa do sinh viên Việt phát triển</p>
+          <p className="wix-featured-description">
+            Xuất phát từ những khó khăn trong việc tìm ra phương pháp học hiệu quả cho em trai mình, 
+            Vũ Trung Quân – sinh viên FPTU campus Hà Nội, Founder dự án Aithenos đã cùng các cộng sự 
+            là sinh viên đến từ nhiều trường đại học khác chung tay xây dựng Aithenos – một ứng dụng AI 
+            giúp cá nhân hóa lộ trình học tập cho học sinh.
+          </p>
+          
+          <div className="wix-featured-projects">
+            {featuredProjects.map((project) => (
+              <div key={project.id} className="wix-project-card reveal">
+                <div className="wix-project-overlay">
+                  <div className="wix-project-number">{project.number}</div>
+                  <div className="wix-project-content">
+                    <h3 className="wix-project-title">{project.title}</h3>
+                    <p className="wix-project-desc">{project.desc}</p>
+                  </div>
+                </div>
+                <div className="wix-project-image">
+                  <img src={project.img} alt={project.title} loading="lazy" decoding="async" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Products Section */}
+        <section className="wix-products-section">
+          <h2 className="wix-section-title">Sản phẩm dự án tiêu biểu</h2>
+          <p className="wix-section-subtitle">Technology, Education, Recycle</p>
+          <p className="wix-products-desc">
+            Một số sản phẩm và dự án tiêu biểu được đánh giá cao và đạt hiệu quả trong những lần chạy thử nghiệm.
+          </p>
+          <div className="wix-products-showcase">
+            <div className="wix-product-highlight">SmartPure</div>
+          </div>
+        </section>
+
+        {/* Stats Section - Wix Cards Style */}
+        <section className="wix-stats-section">
+          <h2 className="wix-section-title">Những con số ấn tượng</h2>
+          <div className="wix-stats-grid">
+            {statsData.map((stat, i) => (
+              <div key={i} className={`wix-stat-card wix-stat-${stat.color} reveal`}>
+                <div className="wix-stat-number">{stat.number}</div>
+                <div className="wix-stat-label">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Startup Partners */}
+        <section className="wix-partners-section">
+          <div className="wix-partners-header">
+            <span className="wix-partners-label">Nhà khởi nghiệp</span>
+            <h2 className="wix-section-title">STARTUP PARTNER</h2>
+          </div>
+          <div className="wix-partners-grid">
+            {partners.map((partner, i) => (
+              <div key={i} className="wix-partner-logo reveal">
+                {partner}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Vote Section */}
+        <section className="wix-vote-section">
+          <div className="wix-vote-header">
+            <h2 className="wix-section-title">Vote Your Team</h2>
+            <p className="wix-vote-subtitle">Bình chọn dự án khởi nghiệp yêu thích của bạn</p>
+          </div>
+          <div className="wix-vote-list">
+            {voteTeams.map((team) => (
+              <div key={team.id} className="wix-vote-item reveal">
+                <div className="wix-vote-info">
+                  <h3 className="wix-vote-name">{team.name}</h3>
+                  <p className="wix-vote-founder">Founder: {team.founder}</p>
+                </div>
+                <button className="wix-vote-button"><span>VOTE</span></button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Forum Section - Blue Cards */}
+        <section className="wix-forum-section">
+          <h2 className="wix-section-title">Diễn đàn thảo luận</h2>
+          <div className="wix-forum-grid">
+            {forumArticles.map((article) => (
+              <div key={article.id} className="wix-forum-card reveal">
+                <h3 className="wix-forum-title">{article.title}</h3>
+                <div className="wix-forum-meta">
+                  <span className="wix-forum-source">{article.source}</span>
+                  <span className="wix-forum-date">{article.date}</span>
+                </div>
+                <button className="wix-forum-cta">READ ARTICLE</button>
+              </div>
+            ))}
           </div>
         </section>
       </main>
 
       <Footer />
-    </>
-  )
-}
+    </div>
+  );
+};
 
-export default Home
+export default Home;
