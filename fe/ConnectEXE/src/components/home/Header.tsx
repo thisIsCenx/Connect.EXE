@@ -140,9 +140,21 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       if (isClickScrolling) {
-        return;
+        return; // Không update activeNav khi đang scroll do click
       }
-      const visibleEntries = entries.filter(entry => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      const visibleEntries = entries
+        .filter(entry => entry.isIntersecting)
+        .sort((a, b) => {
+          // Ưu tiên section có nhiều diện tích hiển thị hơn
+          const aRatio = a.intersectionRatio;
+          const bRatio = b.intersectionRatio;
+          if (Math.abs(aRatio - bRatio) > 0.1) {
+            return bRatio - aRatio;
+          }
+          // Nếu tương tự nhau, ưu tiên section ở trên cùng
+          return a.boundingClientRect.top - b.boundingClientRect.top;
+        });
+      
       if (visibleEntries.length > 0) {
         const topMostEntry = visibleEntries[0];
         const topId = topMostEntry.target.id;
@@ -155,7 +167,11 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
       }
     };
 
-    const observer = new IntersectionObserver(observerCallback, { root: null, rootMargin: '0px 0px -50% 0px', threshold: 0 });
+    const observer = new IntersectionObserver(observerCallback, { 
+      root: null, 
+      rootMargin: '0px 0px -50% 0px', 
+      threshold: [0, 0.25, 0.5, 0.75, 1] // Nhiều threshold để detect tốt hơn
+    });
     const targets = navSections.flatMap(navKey => sectionIds[navKey]).map(id => document.getElementById(id)).filter((el): el is HTMLElement => el !== null);
     targets.forEach(el => observer.observe(el));
 
@@ -183,7 +199,7 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
       }
       scrollTimeoutRef.current = setTimeout(() => {
         setIsClickScrolling(false);
-      }, 1000); // Tăng thời gian chờ lên một chút để đảm bảo cuộn xong
+      }, 1500); // Tăng thời gian để đảm bảo smooth scroll hoàn thành
     }
   };
   
