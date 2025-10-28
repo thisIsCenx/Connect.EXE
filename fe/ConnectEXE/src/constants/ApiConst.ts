@@ -16,3 +16,10 @@ export const CHECK_PHONE_ENDPOINT = '/auth/check-phone';
 export const MEMBER_LIST_ENDPOINT = '/api/admin/users';
 export const UPDATE_USER_ENDPOINT = '/api/admin/users';
 export const GOOGLE_LOGIN_URL = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google`;
+
+// Forum endpoints
+export const FORUM_TOPICS_ENDPOINT = '/forum/topics';
+export const FORUM_TOPIC_DETAIL_ENDPOINT = (topicId: string) => `/forum/topics/${topicId}`;
+export const FORUM_TOPIC_REPLIES_ENDPOINT = (topicId: string) => `/forum/topics/${topicId}/replies`;
+export const FORUM_TOPIC_APPROVE_ENDPOINT = (topicId: string) => `/forum/topics/${topicId}/approve`;
+export const FORUM_TOPIC_RESTORE_ENDPOINT = (topicId: string) => `/forum/topics/${topicId}/restore`;

@@ -9,4 +9,8 @@ export const RouteConst = {
     ROOT: '/admin',
     USERS: '/admin/user',
   },
+  FORUM: {
+    ROOT: '/forum',
+    TOPIC_DETAIL: '/forum/topics/:topicId',
+  },
 };

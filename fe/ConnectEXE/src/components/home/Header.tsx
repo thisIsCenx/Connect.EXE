@@ -1,6 +1,6 @@
 // src/components/Header.tsx
 import React, { useEffect, useState, useCallback } from 'react';
-import Cookies from 'js-cookie';
+import { getUserFromToken, removeTokens } from '../../utils/jwt';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './styles/Header.scss';
 import { FaUserCircle } from 'react-icons/fa';
@@ -28,11 +28,6 @@ interface User {
   status: string;
 }
 
-function decodeCookieValue(value?: string) {
-  if (!value) return '';
-  return decodeURIComponent(value.replace(/\+/g, ' '));
-}
-
 const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePassword }) => {
   // translations removed
   const [user, setUser] = useState<User | null>(null);
@@ -43,25 +38,28 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
   const location = useLocation();
 
   const readUserFromClient = useCallback(() => {
-    // Prefer cookies (set by backend)
-    const cookieUserId = Cookies.get('userId');
-    const cookieFullName = decodeCookieValue(Cookies.get('fullName'));
-    const cookieRole = decodeCookieValue(Cookies.get('role'));
-    const cookieStatus = decodeCookieValue(Cookies.get('status'));
-
-    if (cookieUserId && cookieFullName && cookieRole && cookieStatus) {
+    // Try to get user info from JWT token first
+    const decoded = getUserFromToken();
+    if (decoded) {
       return {
-        userId: Number(cookieUserId),
-        fullName: cookieFullName,
-        role: cookieRole,
-        status: cookieStatus,
+        userId: Number(decoded.userId),
+        fullName: decoded.fullName,
+        role: decoded.role,
+        status: 'ACTIVE', // JWT doesn't have status, default to ACTIVE
       } as User;
     }
 
-    // Fallback to localStorage (set by FE after login)
+    // Fallback to localStorage (backend doesn't support JWT yet)
     const lsUserId = localStorage.getItem(STORAGE_KEYS.USER_ID);
     const lsFullName = localStorage.getItem(STORAGE_KEYS.USER_NAME) || '';
     const lsRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE) || '';
+    
+    console.log('🔍 Header - Reading user from localStorage:', {
+      userId: lsUserId,
+      fullName: lsFullName,
+      role: lsRole
+    });
+    
     if (lsUserId && lsFullName && lsRole) {
       return {
         userId: Number(lsUserId),
@@ -71,6 +69,7 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
       } as User;
     }
 
+    console.warn('⚠️ Header - No user info found');
     return null;
   }, []);
 
@@ -112,11 +111,8 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
     // Clear all user data
     setUser(null);
     
-    // Clear cookies
-    Cookies.remove('userId');
-    Cookies.remove('fullName');
-    Cookies.remove('role');
-    Cookies.remove('status');
+    // Clear JWT tokens and localStorage
+    removeTokens();
     
     // Clear localStorage
     localStorage.removeItem('userId');
@@ -160,7 +156,7 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
             <Link to={RouteConst.HOME} className="nav-item">Tin Tức</Link>
             <Link to="/projects" className="nav-item nav-featured">Khám phá dự án</Link>
             <Link to="/vote" className="nav-item">Bình chọn</Link>
-            <Link to="/forum" className="nav-item">Diễn đàn</Link>
+            <Link to={RouteConst.FORUM.ROOT} className="nav-item">Diễn đàn</Link>
           </nav>
 
           {/* Right actions - matching Wix SIGN IN button */}

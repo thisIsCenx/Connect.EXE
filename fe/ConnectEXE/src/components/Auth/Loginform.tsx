@@ -3,6 +3,7 @@ import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../../services/AuthService';
+import { saveToken, saveRefreshToken } from '../../utils/jwt';
 import type { LoginRequestDTO } from '../../types/request/AuthRequestDTO';
 import { GOOGLE_LOGIN_URL } from '../../constants/ApiConst';
 import { Regex } from '../../constants/Regex';
@@ -40,11 +41,27 @@ export default function LoginForm() {
 
     try {
       const data = await login(form);
-  const { userId, fullName, role, isVerified } = data;
+  const { userId, fullName, role, isVerified, accessToken, refreshToken, token } = data;
+  
+      console.log('🔍 Login response:', { userId, fullName, role, hasToken: !!(accessToken || token) });
 
       if (isVerified === false) {
         setError('Your email is not verified. Please check your email to verify your account.');
         return;
+      }
+      
+      // Save JWT tokens if available
+      const jwtToken = accessToken || token;
+      if (jwtToken) {
+        saveToken(jwtToken);
+        console.log('✅ JWT token saved to localStorage');
+        
+        if (refreshToken) {
+          saveRefreshToken(refreshToken);
+          console.log('✅ Refresh token saved to localStorage');
+        }
+      } else {
+        console.warn('⚠️ No JWT token received from backend - using localStorage fallback');
       }
 
       if (rememberMe) {
@@ -55,12 +72,20 @@ export default function LoginForm() {
         localStorage.removeItem(STORAGE_KEYS.REMEMBER_ME);
       }
 
+  // Save user info to localStorage (required for backwards compatibility)
   localStorage.setItem(STORAGE_KEYS.USER_ID, userId);
       localStorage.setItem(STORAGE_KEYS.USER_NAME, fullName);
       localStorage.setItem(STORAGE_KEYS.USER_ROLE, role);
+      
+      console.log('✅ User info saved to localStorage:', {
+        userId: localStorage.getItem(STORAGE_KEYS.USER_ID),
+        fullName: localStorage.getItem(STORAGE_KEYS.USER_NAME),
+        role: localStorage.getItem(STORAGE_KEYS.USER_ROLE)
+      });
 
   // notify header to refresh auth state
   window.dispatchEvent(new Event('auth:changed'));
+  console.log('✅ Dispatched auth:changed event');
 
   switch (role) {
         case USER_ROLES.ADMIN:
