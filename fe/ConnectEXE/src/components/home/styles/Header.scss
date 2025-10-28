@@ -27,7 +27,8 @@
 		top: 120%;
 		right: 0;
 		padding-left: 0;
-		min-width: 160px;
+		min-width: 400px;
+		width: 100%;
 		background: #fffbea;
 		border: 1.5px solid #ffdea5;
 		border-radius: 10px;
@@ -78,6 +79,7 @@
 	transition: all 0.3s ease;
 	width: 36px;
 	height: 36px;
+
 	&:hover {
 		background-color: #e3f0ff !important;
 		transform: scale(1.08);
@@ -100,7 +102,7 @@
 	background: #fff;
 	border: 1px solid #e0e0e0;
 	border-radius: 10px;
-	box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 	padding: 6px 0;
 	z-index: 1000;
 	display: flex !important;
@@ -139,6 +141,7 @@
 		border-top: 1px solid #e0e0e0;
 		margin-top: 4px;
 		padding-top: 12px;
+
 		&:hover {
 			background-color: #ffebee;
 			color: #c62828;
@@ -151,6 +154,7 @@
 		opacity: 0;
 		transform: translateY(-10px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0);
@@ -163,6 +167,7 @@
 		max-width: 90vw;
 		right: 0;
 	}
+
 	.profile-menu-item {
 		padding: 10px 12px;
 		font-size: 14px;
@@ -173,16 +178,17 @@
 /* ===== Wix-style Header ===== */
 .ex-header {
 	position: fixed;
-	top: 0;
-	left: 0;
+	top: 30px;
+	left: 300px;
 	right: 0;
 	z-index: 1000;
-	background: rgba(0, 0, 0, 0.7);
-	backdrop-filter: blur(15px);
-	-webkit-backdrop-filter: blur(15px);
+	width: 1000px;
+	height: 50px;
+	background: rgba(0, 0, 0, 0.6);
 	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 30px;
 	transition: all 0.3s ease;
-	
+
 	&::before {
 		content: '';
 		position: absolute;
@@ -190,12 +196,12 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background: linear-gradient(90deg, 
-			rgba(255, 107, 157, 0.1) 0%,
-			rgba(196, 69, 105, 0.1) 25%,
-			rgba(91, 120, 199, 0.1) 50%,
-			rgba(102, 126, 234, 0.1) 75%,
-			rgba(118, 75, 162, 0.1) 100%);
+		background: linear-gradient(90deg,
+				rgba(255, 107, 157, 0.1) 0%,
+				rgba(196, 69, 105, 0.1) 25%,
+				rgba(91, 120, 199, 0.1) 50%,
+				rgba(102, 126, 234, 0.1) 75%,
+				rgba(118, 75, 162, 0.1) 100%);
 		z-index: -1;
 	}
 }
@@ -203,84 +209,77 @@
 .ex-header__inner {
 	max-width: 1400px;
 	margin: 0 auto;
-	padding: 16px 24px;
+	padding: 5px 24px;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 }
 
-/* Wix-exact Logo styling */
-.wix-logo {
+/* ===== New Site Logo Styles ===== */
+.site-logo {
 	display: flex;
 	align-items: center;
-	gap: 0;
-	color: #ffffff;
+	gap: 10px; // Khoảng cách giữa biểu tượng và chữ
 	text-decoration: none;
-	font-weight: 700;
-	font-size: 18px;
-	transition: all 0.3s ease;
-	
-	&:hover { 
-		color: #ffffff;
-		transform: scale(1.05);
-	}
-}
-
-.logo-container {
-	display: flex;
-	align-items: center;
-	background: rgba(255, 255, 255, 0.9);
-	color: #000000;
-	padding: 8px 12px;
-	border-radius: 12px;
-	margin-right: 4px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	backdrop-filter: blur(10px);
-	
-	.logo-symbol {
-		font-size: 16px;
-		margin-right: 6px;
-	}
-	
-	.logo-text {
-		font-weight: 700;
-		font-size: 16px;
-	}
-}
-
-.logo-exe {
 	color: #ffffff;
-	font-weight: 400;
-	font-size: 16px;
-	margin-left: 2px;
+	transition: opacity 0.2s ease;
+
+	&:hover {
+		opacity: 0.9;
+	}
+}
+
+.site-logo__symbol {
+	height:30px; // Điều chỉnh chiều cao của logo nếu cần
+	width: auto;
+}
+
+.site-logo__text-wrapper {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.3; // Điều chỉnh khoảng cách giữa 2 dòng chữ
+}
+
+.site-logo__text-primary {
+	font-size: 17px; // Cỡ chữ "Connect."
+	font-weight: 600;
+	color: #ffffff;
+}
+
+.site-logo__text-secondary {
+	font-size: 15px; // Cỡ chữ "exe"
+	font-weight: 500;
+	color: #e5e7eb; // Màu chữ hơi mờ hơn một chút
 }
 
 /* Center Navigation - Enhanced Wix style */
 .center-nav {
 	display: flex;
 	align-items: center;
+	justify-content: center;
 	gap: 28px;
 	position: absolute;
+	top: 0;
 	left: 50%;
+	height: 50px;
 	transform: translateX(-50%);
-	background: rgba(255, 255, 255, 0.08);
-	padding: 6px 20px;
+	background: none;
+	padding: 15px 20px;
 	border-radius: 30px;
-	backdrop-filter: blur(10px);
-	border: 1px solid rgba(255, 255, 255, 0.1);
+	border: none;
 }
 
 .nav-item {
 	color: #ffffff;
 	text-decoration: none;
-	font-weight: 500;
-	font-size: 15px;
-	padding: 10px 18px;
+	font-weight: 100;
+	font-size: 14px;
+	padding: 10px 10px;
 	border-radius: 20px;
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	position: relative;
 	overflow: hidden;
-	
+
 	&::before {
 		content: '';
 		position: absolute;
@@ -291,24 +290,24 @@
 		background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
 		transition: left 0.5s ease;
 	}
-	
+
 	&:hover {
 		color: #ffffff;
 		background: rgba(255, 255, 255, 0.15);
 		transform: translateY(-1px);
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-		
+
 		&::before {
 			left: 100%;
 		}
 	}
-	
+
 	&.nav-featured {
 		background: linear-gradient(135deg, #ff6b9d, #c44569);
 		color: #ffffff;
 		font-weight: 600;
 		box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
-		
+
 		&:hover {
 			background: linear-gradient(135deg, #ff5a8a, #b23a5a);
 			transform: translateY(-2px);
@@ -335,7 +334,7 @@
 	position: relative;
 	overflow: hidden;
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-	
+
 	&::before {
 		content: '';
 		position: absolute;
@@ -346,18 +345,18 @@
 		background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 		transition: left 0.6s ease;
 	}
-	
+
 	&:hover {
 		background: #1a1a1a;
 		color: #ffffff;
 		transform: translateY(-2px);
 		box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-		
+
 		&::before {
 			left: 100%;
 		}
 	}
-	
+
 	&:active {
 		transform: translateY(0);
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -368,8 +367,7 @@
 	position: relative;
 }
 
-.user-avatar {
-	background: rgba(255, 255, 255, 0.1);
+.user-avatar-button {
 	border: none;
 	border-radius: 50%;
 	width: 40px;
@@ -377,10 +375,10 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: #ffffff;
+	color: #000000;
 	cursor: pointer;
 	transition: all 0.3s ease;
-	
+
 	&:hover {
 		background: rgba(255, 255, 255, 0.2);
 	}
@@ -396,6 +394,20 @@
 	min-width: 180px;
 	overflow: hidden;
 	z-index: 1001;
+	color: #000000;
+}
+
+.dropdown-user-info {
+	display: block;
+	width: 100%;
+	min-width: 220px;
+	padding: 16px 20px 0;
+	font-size: 14px;
+	font-weight: 600;
+	background: none;
+	border: none;
+	color: #333333;
+	text-align: left;
 }
 
 .dropdown-item {
@@ -409,15 +421,15 @@
 	cursor: pointer;
 	font-size: 14px;
 	transition: background 0.2s ease;
-	
+
 	&:hover {
 		background: #f5f5f5;
 	}
-	
+
 	&.logout {
 		color: #ff4444;
 		border-top: 1px solid #eee;
-		
+
 		&:hover {
 			background: #fff5f5;
 		}
@@ -428,7 +440,7 @@
 	.center-nav {
 		display: none;
 	}
-	
+
 	.ex-header__inner {
 		padding: 12px 16px;
 	}
@@ -442,6 +454,7 @@
 	text-decoration: none;
 	white-space: nowrap;
 }
+
 .ex-logo {
 	display: inline-flex;
 	align-items: center;
@@ -452,6 +465,7 @@
 	background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
 	font-weight: 800;
 }
+
 .ex-wordmark {
 	font-size: 18px;
 	color: #e5e7eb;
@@ -465,11 +479,12 @@
 	align-items: center;
 	gap: 14px;
 	padding: 10px 14px;
-	border: 1px solid rgba(255,255,255,0.14);
+	border: 1px solid rgba(255, 255, 255, 0.14);
 	border-radius: 999px;
-	background: rgba(255,255,255,0.06);
+	background: rgba(255, 255, 255, 0.06);
 	backdrop-filter: blur(6px);
 }
+
 .ex-nav a {
 	color: #e5e7eb;
 	text-decoration: none;
@@ -478,9 +493,18 @@
 	padding: 6px 10px;
 	border-radius: 999px;
 }
-.ex-nav a:hover { background: rgba(255,255,255,0.12); }
-.ex-nav .ex-icon { padding: 6px; }
-.ex-divider { color: rgba(255,255,255,0.28); }
+
+.ex-nav a:hover {
+	background: rgba(255, 255, 255, 0.12);
+}
+
+.ex-nav .ex-icon {
+	padding: 6px;
+}
+
+.ex-divider {
+	color: rgba(255, 255, 255, 0.28);
+}
 
 .ex-actions {
 	margin-left: auto;
@@ -488,11 +512,13 @@
 	align-items: center;
 	gap: 10px;
 }
+
 .ex-login {
 	color: #cbd5e1;
 	text-decoration: none;
 	padding: 8px 10px;
 }
+
 .ex-signup {
 	color: #0b1023;
 	background: #fbbf24;
@@ -501,7 +527,10 @@
 	border-radius: 999px;
 	font-weight: 700;
 }
-.ex-signup:hover { filter: brightness(1.05); }
+
+.ex-signup:hover {
+	filter: brightness(1.05);
+}
 
 .ex-avatar {
 	display: inline-flex;
@@ -510,8 +539,8 @@
 	width: 36px;
 	height: 36px;
 	border-radius: 50%;
-	border: 1px solid rgba(255,255,255,0.14);
-	background: rgba(255,255,255,0.06);
+	border: 1px solid rgba(255, 255, 255, 0.14);
+	background: rgba(255, 255, 255, 0.06);
 	color: #e5e7eb;
 }
 
@@ -521,12 +550,13 @@
 	top: 42px;
 	right: 0;
 	background: #0f172a;
-	border: 1px solid rgba(255,255,255,0.12);
+	border: 1px solid rgba(255, 255, 255, 0.12);
 	border-radius: 10px;
-	box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 	min-width: 190px;
 	z-index: 1000;
 }
+
 .profile-dropdown-item {
 	display: block;
 	width: 100%;
@@ -537,8 +567,13 @@
 	padding: 10px 14px;
 	cursor: pointer;
 }
-.profile-dropdown-item:hover { background: rgba(255,255,255,0.08); }
+
+.profile-dropdown-item:hover {
+	background: rgba(255, 255, 255, 0.08);
+}
 
 @media (max-width: 920px) {
-	.ex-nav { display: none; }
+	.ex-nav {
+		display: none;
+	}
 }

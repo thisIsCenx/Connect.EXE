@@ -105,8 +105,7 @@
 .action-btn:last-child { background: linear-gradient(90deg,#2ea6ff,#6f3efc); color: #fff; border: none; }
 
 .action-btn:last-child:hover:not(:disabled) {
-  background: linear-gradient(135deg, #a00000, #b71c1c);
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #268de0, #5c29d6);
   box-shadow: 0 4px 12px rgba(183, 28, 28, 0.3);
 }
 

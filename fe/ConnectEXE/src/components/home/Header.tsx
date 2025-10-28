@@ -1,12 +1,11 @@
-// src/components/Header.tsx
-import React, { useEffect, useState, useCallback } from 'react';
-import { getUserFromToken, removeTokens } from '../../utils/jwt';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import Cookies from 'js-cookie';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './styles/Header.scss';
-import { FaUserCircle } from 'react-icons/fa';
 import { RouteConst } from '../../constants/RouteConst';
 import { STORAGE_KEYS } from '../../constants/AuthConst';
 import { API_BASE_URL } from '../../constants/ApiConst';
+import logoPng from '../../../src/assets/logo.png';
 
 interface BreadcrumbItem {
   text: string;
@@ -28,38 +27,70 @@ interface User {
   status: string;
 }
 
+type NavSection = 'tin-tuc' | 'kham-pha-du-an' | 'binh-chon' | 'dien-dan' | null;
+
+function decodeCookieValue(value?: string) {
+  if (!value) return '';
+  return decodeURIComponent(value.replace(/\+/g, ' '));
+}
+
+function getInitials(fullName: string): string {
+  if (!fullName) return '?';
+  const nameParts = fullName.trim().split(' ').filter(part => part.length > 0);
+  if (nameParts.length === 0) return '?';
+  if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase();
+  const firstInitial = nameParts[0].charAt(0).toUpperCase();
+  const lastInitial = nameParts[nameParts.length - 1].charAt(0).toUpperCase();
+  return firstInitial + lastInitial;
+}
+
+function getAvatarColor(name: string): string {
+  const colors = [
+    '#FF6B9D', '#C44569', '#5B78C7', '#667EEA', '#764BA2',
+    '#F093FB', '#4FACFE', '#43E97B', '#FA709A', '#FEE140',
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function capitalizeFirstLetter(str: string): string {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePassword }) => {
-  // translations removed
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const navigate = useNavigate();
+  const [activeNav, setActiveNav] = useState<NavSection>('kham-pha-du-an');
 
+  const [isClickScrolling, setIsClickScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const navigate = useNavigate();
   const location = useLocation();
 
   const readUserFromClient = useCallback(() => {
-    // Try to get user info from JWT token first
-    const decoded = getUserFromToken();
-    if (decoded) {
+    const cookieUserId = Cookies.get('userId');
+    const cookieFullName = decodeCookieValue(Cookies.get('fullName'));
+    const cookieRole = decodeCookieValue(Cookies.get('role'));
+    const cookieStatus = decodeCookieValue(Cookies.get('status'));
+
+    if (cookieUserId && cookieFullName && cookieRole && cookieStatus) {
       return {
-        userId: Number(decoded.userId),
-        fullName: decoded.fullName,
-        role: decoded.role,
-        status: 'ACTIVE', // JWT doesn't have status, default to ACTIVE
+        userId: Number(cookieUserId),
+        fullName: cookieFullName,
+        role: cookieRole,
+        status: cookieStatus,
       } as User;
     }
 
-    // Fallback to localStorage (backend doesn't support JWT yet)
     const lsUserId = localStorage.getItem(STORAGE_KEYS.USER_ID);
     const lsFullName = localStorage.getItem(STORAGE_KEYS.USER_NAME) || '';
     const lsRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE) || '';
-    
-    console.log('🔍 Header - Reading user from localStorage:', {
-      userId: lsUserId,
-      fullName: lsFullName,
-      role: lsRole
-    });
-    
     if (lsUserId && lsFullName && lsRole) {
       return {
         userId: Number(lsUserId),
@@ -68,14 +99,11 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
         status: 'ACTIVE',
       } as User;
     }
-
-    console.warn('⚠️ Header - No user info found');
     return null;
   }, []);
 
   useEffect(() => {
     setUser(readUserFromClient());
-    // language switching removed
   }, [readUserFromClient, location.pathname]);
 
   useEffect(() => {
@@ -87,7 +115,7 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
   useEffect(() => {
     if (!isProfileDropdownOpen) return;
     const handleClick = (e: MouseEvent) => {
-      const dropdown = document.querySelector('.profile-dropdown');
+      const dropdown = document.querySelector('.user-dropdown');
       if (dropdown && !dropdown.contains(e.target as Node)) {
         setIsProfileDropdownOpen(false);
       }
@@ -96,81 +124,172 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
     return () => document.removeEventListener('mousedown', handleClick);
   }, [isProfileDropdownOpen]);
 
+  useEffect(() => {
+    if (location.pathname !== RouteConst.HOME) {
+      setActiveNav(null);
+      return;
+    }
+
+    const navSections: Exclude<NavSection, null>[] = ['tin-tuc', 'kham-pha-du-an', 'binh-chon', 'dien-dan'];
+    const sectionIds: Record<Exclude<NavSection, null>, string[]> = {
+      'tin-tuc': ['tin-tuc-gallery', 'tin-tuc-stats', 'tin-tuc-partners'],
+      'kham-pha-du-an': ['kham-pha-du-an-hero', 'kham-pha-du-an-featured', 'kham-pha-du-an-products'],
+      'binh-chon': ['binh-chon'],
+      'dien-dan': ['dien-dan'],
+    };
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      if (isClickScrolling) {
+        return;
+      }
+      const visibleEntries = entries.filter(entry => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visibleEntries.length > 0) {
+        const topMostEntry = visibleEntries[0];
+        const topId = topMostEntry.target.id;
+        for (const navKey of navSections) {
+          if (sectionIds[navKey].includes(topId)) {
+            setActiveNav(prevState => prevState !== navKey ? navKey : prevState);
+            break;
+          }
+        }
+      }
+    };
+
+    const observer = new IntersectionObserver(observerCallback, { root: null, rootMargin: '0px 0px -50% 0px', threshold: 0 });
+    const targets = navSections.flatMap(navKey => sectionIds[navKey]).map(id => document.getElementById(id)).filter((el): el is HTMLElement => el !== null);
+    targets.forEach(el => observer.observe(el));
+
+    return () => {
+      observer.disconnect();
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [location.pathname, isClickScrolling]);
+
+  const handleNavClick = (event: React.MouseEvent<HTMLAnchorElement>, navKey: NavSection, elementId: string) => {
+    if (location.pathname !== RouteConst.HOME) {
+      navigate(`${RouteConst.HOME}#${elementId}`);
+      return;
+    }
+    event.preventDefault();
+    const element = document.getElementById(elementId);
+    if (element) {
+      setIsClickScrolling(true);
+      setActiveNav(navKey);
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsClickScrolling(false);
+      }, 1000); // Tăng thời gian chờ lên một chút để đảm bảo cuộn xong
+    }
+  };
+  
+  // ***** KHỐI CODE GÂY LỖI ĐÃ ĐƯỢC XÓA BỎ *****
+
+  useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.substring(1);
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [location]);
+
   const handleLogout = async () => {
     setLoading(true);
     try {
-      // Call logout endpoint
-      await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await fetch(`${API_BASE_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
     } catch (err) {
       console.error('Logout failed:', err);
     }
-    
-    // Clear all user data
     setUser(null);
-    
-    // Clear JWT tokens and localStorage
-    removeTokens();
-    
-    // Clear localStorage
-    localStorage.removeItem('userId');
-    localStorage.removeItem('fullName');
-    localStorage.removeItem('role');
-    localStorage.removeItem('register_email');
-    localStorage.clear(); // Clear all stored data
-    
-    // Clear sessionStorage
+    Cookies.remove('userId');
+    Cookies.remove('fullName');
+    Cookies.remove('role');
+    Cookies.remove('status');
+    Cookies.remove('isVerified');
+    localStorage.clear();
     sessionStorage.clear();
-    
     setLoading(false);
-    
-    // Notify other components about auth change
     window.dispatchEvent(new Event('auth:changed'));
-    
-    // Navigate to login page
     navigate('/login');
-    
-    // Force page reload to ensure complete session cleanup
     setTimeout(() => {
       window.location.reload();
     }, 100);
   };
-
+  
   return (
     <>
       <header className="ex-header">
         <div className="ex-header__inner">
-          {/* Logo - exact Wix style */}
-          <Link to={RouteConst.HOME} className="wix-logo" aria-label="Connect EXE">
-            <div className="logo-container">
-              <span className="logo-symbol">⚡</span>
-              <span className="logo-text">Connect</span>
-            </div>
-            <span className="logo-exe">exe</span>
+          <Link to={RouteConst.HOME} className="site-logo" aria-label="Connect EXE Home">
+            <img src={logoPng} alt="Connect EXE Logo" className="site-logo__symbol" />
           </Link>
-
-          {/* Center Navigation - matching Wix menu */}
           <nav className="center-nav">
-            <Link to={RouteConst.HOME} className="nav-item">Tin Tức</Link>
-            <Link to="/projects" className="nav-item nav-featured">Khám phá dự án</Link>
-            <Link to="/vote" className="nav-item">Bình chọn</Link>
-            <Link to={RouteConst.FORUM.ROOT} className="nav-item">Diễn đàn</Link>
+            <Link 
+              to={`${RouteConst.HOME}#tin-tuc-gallery`} 
+              className={`nav-item ${activeNav === 'tin-tuc' ? 'nav-featured' : ''}`}
+              onClick={(e) => handleNavClick(e, 'tin-tuc', 'tin-tuc-gallery')}
+            >
+              Tin Tức
+            </Link>
+            <Link 
+              to={`${RouteConst.HOME}#kham-pha-du-an-hero`} 
+              className={`nav-item ${activeNav === 'kham-pha-du-an' ? 'nav-featured' : ''}`}
+              onClick={(e) => handleNavClick(e, 'kham-pha-du-an', 'kham-pha-du-an-hero')}
+            >
+              Khám phá dự án
+            </Link>
+            <Link 
+              to={`${RouteConst.HOME}#binh-chon`} 
+              className={`nav-item ${activeNav === 'binh-chon' ? 'nav-featured' : ''}`}
+              onClick={(e) => handleNavClick(e, 'binh-chon', 'binh-chon')}
+            >
+              Bình chọn
+            </Link>
+            <Link 
+              to={`${RouteConst.HOME}#dien-dan`} 
+              className={`nav-item ${activeNav === 'dien-dan' ? 'nav-featured' : ''}`}
+              onClick={(e) => handleNavClick(e, 'dien-dan', 'dien-dan')}
+            >
+              Diễn đàn
+            </Link>
           </nav>
-
-          {/* Right actions - matching Wix SIGN IN button */}
           <div className="header-actions">
             {user ? (
-              <div className="user-menu" style={{ position:'relative' }}>
-                <button className="user-avatar" onClick={() => setIsProfileDropdownOpen(v=>!v)} aria-label="Profile">
-                  <FaUserCircle size={20} />
+              <div className="user-menu">
+                <button 
+                  className="user-avatar-button" 
+                  onClick={() => setIsProfileDropdownOpen(v => !v)} 
+                  aria-label="User Profile Menu"
+                  style={{ background: getAvatarColor(user.fullName) }}
+                  title={user.fullName}
+                >
+                  <span className="user-initials">{getInitials(user.fullName)}</span>
                 </button>
                 {isProfileDropdownOpen && (
                   <div className="user-dropdown">
-                    <button className="dropdown-item" onClick={() => { onEditProfile?.(); setIsProfileDropdownOpen(false); }}>Chỉnh sửa hồ sơ</button>
-                    <button className="dropdown-item" onClick={() => { onChangePassword?.(); setIsProfileDropdownOpen(false); }}>Đổi mật khẩu</button>
-                    <button className="dropdown-item logout" onClick={handleLogout}>{loading ? 'Đang đăng xuất...' : 'Đăng xuất'}</button>
+                    <div className="dropdown-user-info">
+                      <div className="dropdown-user-name">{user.fullName}</div>
+                      <div className="dropdown-user-role">{capitalizeFirstLetter(user.role)}</div>
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <button className="dropdown-item" onClick={() => { onEditProfile?.(); setIsProfileDropdownOpen(false); }}>
+                      <span className="dropdown-item-icon">👤</span> Chỉnh sửa hồ sơ
+                    </button>
+                    <button className="dropdown-item" onClick={() => { onChangePassword?.(); setIsProfileDropdownOpen(false); }}>
+                      <span className="dropdown-item-icon">🔒</span> Đổi mật khẩu
+                    </button>
+                    <div className="dropdown-divider"></div>
+                    <button className="dropdown-item logout" onClick={handleLogout} disabled={loading}>
+                      <span className="dropdown-item-icon">🚪</span> {loading ? 'Đang đăng xuất...' : 'Đăng xuất'}
+                    </button>
                   </div>
                 )}
               </div>
@@ -180,35 +299,21 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
           </div>
         </div>
       </header>
-
-      {/* Breadcrumbs (optional) */}
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="breadcrumb" aria-label="Breadcrumb">
           <a
             href="#"
             className="breadcrumb-home"
-            onClick={(e) => {
-              e.preventDefault();
-              breadcrumbs[0]?.onClick?.();
-            }}
+            onClick={(e) => { e.preventDefault(); breadcrumbs[0]?.onClick?.(); }}
             aria-label="Home"
           >
             <i className="fas fa-home"></i>
           </a>
           {breadcrumbs.map((item) => (
             <React.Fragment key={item.step}>
-              <span className="breadcrumb-separator">
-                <i className="fas fa-chevron-right"></i>
-              </span>
+              <span className="breadcrumb-separator"><i className="fas fa-chevron-right"></i></span>
               {item.onClick ? (
-                <a
-                  href="#"
-                  className="breadcrumb-link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    item.onClick?.();
-                  }}
-                >
+                <a href="#" className="breadcrumb-link" onClick={(e) => { e.preventDefault(); item.onClick?.(); }}>
                   {item.text}
                 </a>
               ) : (
