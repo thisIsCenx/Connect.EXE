@@ -254,9 +254,8 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
               Bình chọn
             </Link>
             <Link 
-              to={`${RouteConst.HOME}#dien-dan`} 
-              className={`nav-item ${activeNav === 'dien-dan' ? 'nav-featured' : ''}`}
-              onClick={(e) => handleNavClick(e, 'dien-dan', 'dien-dan')}
+              to={RouteConst.FORUM.ROOT} 
+              className={`nav-item ${location.pathname.startsWith('/forum') ? 'nav-featured' : ''}`}
             >
               Diễn đàn
             </Link>
