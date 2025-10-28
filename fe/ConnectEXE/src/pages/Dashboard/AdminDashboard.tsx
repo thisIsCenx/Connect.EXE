@@ -8,17 +8,11 @@ import {
 } from '@ant-design/icons';
 import { Card, Col, Layout, Menu, Row, Typography } from 'antd';
 import axios from 'axios';
-import Cookies from 'js-cookie';
+import { getUserFromToken, removeTokens } from '../../utils/jwt';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import './styles/AdminDashboard.scss';
-
-// Hàm decode giống trong Header.tsx
-function decodeCookieValue(value?: string) {
-  if (!value) return '';
-  return decodeURIComponent(value.replace(/\+/g, ' '));
-}
 
 
 const { Sider } = Layout;
@@ -88,8 +82,11 @@ const AdminDashboard: React.FC = () => {
   });
 
   useEffect(() => {
-    const decodedName = decodeCookieValue(Cookies.get('fullName'));
-    if (decodedName) setFullName(decodedName);
+    // Get user info from JWT token
+    const decoded = getUserFromToken();
+    if (decoded) {
+      setFullName(decoded.fullName);
+    }
 
     // Đóng menu khi nhấp ra ngoài
     const handleClickOutside = (event: MouseEvent) => {
@@ -116,10 +113,8 @@ const AdminDashboard: React.FC = () => {
           withCredentials: true,
         },
       );
-      Cookies.remove('userId');
-      Cookies.remove('fullName');
-      Cookies.remove('role');
-      Cookies.remove('status');
+      // Clear JWT tokens and localStorage
+      removeTokens();
       navigate('/login');
       setIsLogoutOpen(false);
     } catch (error) {

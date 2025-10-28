@@ -10,6 +10,9 @@ export interface LoginResponseDTO {
   fullName: string;
   role: string;
   isVerified?: boolean;
+  accessToken?: string;
+  refreshToken?: string;
+  token?: string; // Fallback for backwards compatibility
 }
 
 export interface ForgotPasswordResponseDTO {

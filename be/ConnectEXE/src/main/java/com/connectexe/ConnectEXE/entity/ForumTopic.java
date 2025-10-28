@@ -21,6 +21,32 @@ public class ForumTopic {
     @Column(name = "content")
     private String content;
 
+    @Column(name = "approved")
+    private Boolean approved = false;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (approved == null) {
+            approved = false;
+        }
+        if (isActive == null) {
+            isActive = true;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

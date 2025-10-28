@@ -21,6 +21,8 @@ public class RouteConst {
     public static final String API_PARAM_COMMENT_ID_PATH = "/{" + API_PARAM_COMMENT_ID + "}";
     public static final String API_PARAM_REPORT_ID = "reportId";
     public static final String API_PARAM_REPORT_ID_PATH = "/{" + API_PARAM_REPORT_ID + "}";
+    public static final String API_PARAM_TOPIC_ID = "topicId";
+    public static final String API_PARAM_TOPIC_ID_PATH = "/{" + API_PARAM_TOPIC_ID + "}";
 
     // Authentication routes
     // Use /auth as the public authentication base. Keep endpoints centralized here for easier changes and
@@ -60,7 +62,7 @@ public class RouteConst {
     // Forum and discussions
     public static final String FORUM_BASE = "/forum";
     public static final String FORUM_TOPICS = FORUM_BASE + "/topics";
-    public static final String FORUM_TOPIC_ID_PATH = FORUM_TOPICS + API_PARAM_ID_PATH;
+    public static final String FORUM_TOPIC_ID_PATH = FORUM_TOPICS + API_PARAM_TOPIC_ID_PATH;
     public static final String FORUM_TOPIC_REPLIES = FORUM_TOPIC_ID_PATH + "/replies";
     public static final String FORUM_TOPIC_APPROVE = FORUM_TOPIC_ID_PATH + "/approve";
     // Backwards-compatible alias used by SecurityConfig

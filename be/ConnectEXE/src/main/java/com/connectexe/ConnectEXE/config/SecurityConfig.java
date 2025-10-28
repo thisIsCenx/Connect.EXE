@@ -25,6 +25,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.connectexe.ConnectEXE.auth.service.CustomOAuth2UserService;
 import com.connectexe.ConnectEXE.auth.service.CustomUserDetailsService;
 import com.connectexe.ConnectEXE.common.constant.RouteConst;
+import com.connectexe.ConnectEXE.security.JwtAuthenticationFilter;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,11 +39,14 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
-                          CustomOAuth2UserService customOAuth2UserService) {
+                          CustomOAuth2UserService customOAuth2UserService,
+                          JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.userDetailsService = userDetailsService;
         this.customOAuth2UserService = customOAuth2UserService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     /**
@@ -98,6 +102,7 @@ public class SecurityConfig {
 
     /**
      * Custom filter to authenticate users based on role cookies.
+     * Runs first for backwards compatibility, JWT filter will override if present.
      *
      * @return OncePerRequestFilter instance
      */
@@ -108,6 +113,7 @@ public class SecurityConfig {
             protected void doFilterInternal(HttpServletRequest req,
                     HttpServletResponse res,
                     FilterChain chain) throws ServletException, IOException {
+                
                 Cookie[] cookies = req.getCookies();
                 if (cookies != null) {
                     for (Cookie cookie : cookies) {
@@ -119,6 +125,7 @@ public class SecurityConfig {
                                         principal, null,
                                         List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())));
                                 SecurityContextHolder.getContext().setAuthentication(auth);
+                                System.out.println("🍪 Cookie auth set for role: " + role + " (may be overridden by JWT)");
                                 break;
                             }
                         }
@@ -140,8 +147,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authenticationProvider(authenticationProvider())
-                // use SecurityContextHolderFilter (replacement for deprecated SecurityContextPersistenceFilter)
+                // Cookie filter runs first (for backwards compatibility)
                 .addFilterBefore(cookieAuthFilter(), org.springframework.security.web.context.SecurityContextHolderFilter.class)
+                // JWT filter runs AFTER SecurityContextHolder and OVERRIDES cookie auth if JWT present
+                .addFilterAfter(jwtAuthenticationFilter, org.springframework.security.web.context.SecurityContextHolderFilter.class)
                 .cors(cors -> cors.configure(http))
                 .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(auth -> auth
