@@ -69,6 +69,7 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
 
   const [isClickScrolling, setIsClickScrolling] = useState(false);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastClickedNavRef = useRef<NavSection>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -140,27 +141,24 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
       if (isClickScrolling) {
-        return; // Không update activeNav khi đang scroll do click
+        return; // Không update khi đang scroll do click
       }
+      
+      // Nếu vừa click vào nav, ưu tiên giữ nav đó
+      if (lastClickedNavRef.current && Date.now() - (window as any)._lastNavClickTime < 2000) {
+        return;
+      }
+      
       const visibleEntries = entries
-        .filter(entry => entry.isIntersecting)
-        .sort((a, b) => {
-          // Ưu tiên section có nhiều diện tích hiển thị hơn
-          const aRatio = a.intersectionRatio;
-          const bRatio = b.intersectionRatio;
-          if (Math.abs(aRatio - bRatio) > 0.1) {
-            return bRatio - aRatio;
-          }
-          // Nếu tương tự nhau, ưu tiên section ở trên cùng
-          return a.boundingClientRect.top - b.boundingClientRect.top;
-        });
+        .filter(entry => entry.isIntersecting && entry.intersectionRatio > 0.3) // Chỉ xét section hiển thị > 30%
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
       
       if (visibleEntries.length > 0) {
         const topMostEntry = visibleEntries[0];
         const topId = topMostEntry.target.id;
         for (const navKey of navSections) {
           if (sectionIds[navKey].includes(topId)) {
-            setActiveNav(prevState => prevState !== navKey ? navKey : prevState);
+            setActiveNav(navKey);
             break;
           }
         }
@@ -169,8 +167,8 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
 
     const observer = new IntersectionObserver(observerCallback, { 
       root: null, 
-      rootMargin: '0px 0px -50% 0px', 
-      threshold: [0, 0.25, 0.5, 0.75, 1] // Nhiều threshold để detect tốt hơn
+      rootMargin: '-20% 0px -40% 0px', // Chỉ detect khi section ở giữa màn hình
+      threshold: [0.3, 0.5, 0.7] 
     });
     const targets = navSections.flatMap(navKey => sectionIds[navKey]).map(id => document.getElementById(id)).filter((el): el is HTMLElement => el !== null);
     targets.forEach(el => observer.observe(el));
@@ -193,13 +191,17 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
     if (element) {
       setIsClickScrolling(true);
       setActiveNav(navKey);
+      lastClickedNavRef.current = navKey;
+      (window as any)._lastNavClickTime = Date.now(); // Lưu thời gian click
+      
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
       scrollTimeoutRef.current = setTimeout(() => {
         setIsClickScrolling(false);
-      }, 1500); // Tăng thời gian để đảm bảo smooth scroll hoàn thành
+      }, 2000); // Tăng lên 2 giây để đảm bảo scroll xong mới cho observer hoạt động
     }
   };
   
