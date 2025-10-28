@@ -70,6 +70,7 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
   const [isClickScrolling, setIsClickScrolling] = useState(false);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastClickedNavRef = useRef<NavSection>(null);
+  const scrollDetectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -139,44 +140,53 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
       'dien-dan': ['dien-dan'],
     };
 
-    const observerCallback = (entries: IntersectionObserverEntry[]) => {
-      if (isClickScrolling) {
-        return; // Không update khi đang scroll do click
-      }
-      
-      // Nếu vừa click vào nav, ưu tiên giữ nav đó
-      if (lastClickedNavRef.current && Date.now() - (window as any)._lastNavClickTime < 2000) {
-        return;
-      }
-      
-      const visibleEntries = entries
-        .filter(entry => entry.isIntersecting && entry.intersectionRatio > 0.3) // Chỉ xét section hiển thị > 30%
-        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-      
-      if (visibleEntries.length > 0) {
-        const topMostEntry = visibleEntries[0];
-        const topId = topMostEntry.target.id;
-        for (const navKey of navSections) {
-          if (sectionIds[navKey].includes(topId)) {
-            setActiveNav(navKey);
-            break;
+    const detectActiveSection = () => {
+      if (isClickScrolling) return;
+      if (lastClickedNavRef.current && Date.now() - (window as any)._lastNavClickTime < 2500) return;
+
+      // Tìm section đầu tiên nằm trong viewport (từ top xuống)
+      const viewportHeight = window.innerHeight;
+      const scrollY = window.scrollY;
+      const checkPoint = scrollY + viewportHeight * 0.3; // Check ở 30% từ top màn hình
+
+      for (const navKey of navSections) {
+        for (const sectionId of sectionIds[navKey]) {
+          const element = document.getElementById(sectionId);
+          if (element) {
+            const rect = element.getBoundingClientRect();
+            const elementTop = rect.top + scrollY;
+            const elementBottom = elementTop + rect.height;
+            
+            // Nếu checkpoint nằm trong section này
+            if (checkPoint >= elementTop && checkPoint <= elementBottom) {
+              setActiveNav(navKey);
+              return;
+            }
           }
         }
       }
     };
 
-    const observer = new IntersectionObserver(observerCallback, { 
-      root: null, 
-      rootMargin: '-20% 0px -40% 0px', // Chỉ detect khi section ở giữa màn hình
-      threshold: [0.3, 0.5, 0.7] 
-    });
-    const targets = navSections.flatMap(navKey => sectionIds[navKey]).map(id => document.getElementById(id)).filter((el): el is HTMLElement => el !== null);
-    targets.forEach(el => observer.observe(el));
+    const handleScroll = () => {
+      if (scrollDetectTimeoutRef.current) {
+        clearTimeout(scrollDetectTimeoutRef.current);
+      }
+      // Chỉ detect sau khi scroll dừng 150ms
+      scrollDetectTimeoutRef.current = setTimeout(detectActiveSection, 150);
+    };
+
+    // Detect ban đầu
+    detectActiveSection();
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
-      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
+      }
+      if (scrollDetectTimeoutRef.current) {
+        clearTimeout(scrollDetectTimeoutRef.current);
       }
     };
   }, [location.pathname, isClickScrolling]);
