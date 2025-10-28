@@ -111,7 +111,8 @@ export const RegisterVerifyOTP: React.FC<RegisterVerifyOTPProps> = ({
 
   const handleVerify = async () => {
     setShowResendSuccess(false);
-    if (!email) {
+    const targetEmail = (email || localStorage.getItem('register_email') || '').trim().toLowerCase();
+    if (!targetEmail) {
       setVerifyMessage('No user found with the provided email.');
       return;
     }
@@ -120,7 +121,7 @@ export const RegisterVerifyOTP: React.FC<RegisterVerifyOTPProps> = ({
       return;
     }
     try {
-      const response = await verifyRegisterCode(email, verificationCode);
+      const response = await verifyRegisterCode(targetEmail, verificationCode);
       
       // Kiểm tra response từ backend
       if (response.success) {
@@ -144,14 +145,15 @@ export const RegisterVerifyOTP: React.FC<RegisterVerifyOTPProps> = ({
   };
 
   const handleResend = async () => {
-    if (!email) {
+    const targetEmail = (email || localStorage.getItem('register_email') || '').trim().toLowerCase();
+    if (!targetEmail) {
       setVerifyMessage('No user found with the provided email.');
       return;
     }
     setIsResending(true);
     setVerifyMessage('');
     try {
-      await resendRegisterCode(email);
+      await resendRegisterCode(targetEmail);
       setShowResendSuccess(true);
   setVerifyMessage('OTP sent successfully.');
       setOtpStartTime(Date.now());

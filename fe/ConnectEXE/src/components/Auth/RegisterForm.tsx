@@ -5,7 +5,7 @@ import { FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaPhone, FaBirthdayCake,
 import { useNavigate } from 'react-router-dom';
 import type { RegisterRequestDTO } from '../../types/request/AuthRequestDTO';
 import { GENDER_OPTIONS } from '../../constants/AuthConst';
-import { checkEmailExists, checkPhoneExists } from '../../services/AuthService';
+import { checkEmailUnique, checkPhoneUnique } from '../../services/AuthService';
 
 interface RegisterFormProps {
   form: RegisterRequestDTO & { confirmPassword: string };
@@ -49,16 +49,32 @@ export const RegisterForm = ({
   // Validate email on blur
   const handleEmailBlur = async () => {
     if (form.email) {
-      const exists = await checkEmailExists(form.email);
-      setLocalFieldErrors((prev) => ({ ...prev, email: exists ? 'Email has already been used.' : undefined }));
+      try {
+        const res = await checkEmailUnique(form.email);
+        const available = res?.data?.available;
+        setLocalFieldErrors((prev) => ({ 
+          ...prev, 
+          email: available === false ? 'Email này đã được sử dụng.' : undefined 
+        }));
+      } catch {
+        // On error, don't block the user here; leave message empty
+      }
     }
   };
 
   // Validate phone on blur
   const handlePhoneBlur = async () => {
     if (form.phoneNumber) {
-      const exists = await checkPhoneExists(form.phoneNumber);
-      setLocalFieldErrors((prev) => ({ ...prev, phoneNumber: exists ? 'Phone number has already been used.' : undefined }));
+      try {
+        const res = await checkPhoneUnique(form.phoneNumber);
+        const available = res?.data?.available;
+        setLocalFieldErrors((prev) => ({ 
+          ...prev, 
+          phoneNumber: available === false ? 'Số điện thoại này đã được sử dụng.' : undefined 
+        }));
+      } catch {
+        // ignore errors for blur check
+      }
     }
   };
 
@@ -69,25 +85,31 @@ export const RegisterForm = ({
           onSubmit={(e) => {
               if (!agreed) {
               e.preventDefault();
-              alert('You must agree to the terms to register.');
+              alert('Bạn phải đồng ý với điều khoản để đăng ký.');
               return;
             }
             onSubmit(e);
           }}
           className="register-form-box"
+          autoComplete="off"
         >
-          <h1 className="logo">Sign up</h1>
+          <h1 className="logo">Đăng ký</h1>
+
+          {/* Hidden decoy fields to discourage password managers */}
+          <input type="text" name="_fake_username" autoComplete="username" tabIndex={-1} style={{ position: 'absolute', left: -9999, width: 1, height: 1 }} />
+          <input type="password" name="_fake_password" autoComplete="new-password" tabIndex={-1} style={{ position: 'absolute', left: -9999, width: 1, height: 1 }} />
 
           <div className="form-grid">
             <div className="input-group">
-              <label>Full name</label>
+              <label>Họ và tên</label>
               <div className="input-wrapper">
                 <FaUser className="icon" />
                 <input 
                   name="fullName" 
-                  placeholder={'Full name'} 
+                  placeholder={'Họ và tên'} 
                   value={form.fullName} 
-                  onChange={onChange} 
+                  onChange={onChange}
+                  autoComplete="name"
                   required 
                 />
               </div>
@@ -102,10 +124,11 @@ export const RegisterForm = ({
                 <input 
                   type="text" 
                   name="email" 
-                  placeholder="you@example.com" 
+                  placeholder="email@example.com" 
                   value={form.email} 
                   onChange={onChange} 
                   onBlur={handleEmailBlur}
+                  autoComplete="email"
                   required 
                 />
               </div>
@@ -114,16 +137,17 @@ export const RegisterForm = ({
               </div>
             </div>
             <div className="input-group">
-              <label>Phone number</label>
+              <label>Số điện thoại</label>
               <div className="input-wrapper">
                 <FaPhone className="icon" />
                 <input 
                   type="tel" 
                   name="phoneNumber" 
-                  placeholder="e.g. 0901234567" 
+                  placeholder="VD: 0901234567" 
                   value={form.phoneNumber} 
                   onChange={onChange} 
                   onBlur={handlePhoneBlur}
+                  autoComplete="tel"
                   required 
                 />
               </div>
@@ -132,14 +156,15 @@ export const RegisterForm = ({
               </div>
             </div>
             <div className="input-group">
-              <label>Identity card</label>
+              <label>Số CMND/CCCD</label>
               <div className="input-wrapper">
                 <FaIdCard className="icon" />
                 <input 
                   name="identityCard" 
-                  placeholder="e.g. 012345678901" 
+                  placeholder="VD: 012345678901" 
                   value={form.identityCard} 
-                  onChange={onChange} 
+                  onChange={onChange}
+                  autoComplete="off"
                   required 
                 />
               </div>
@@ -148,15 +173,16 @@ export const RegisterForm = ({
               </div>
             </div>
             <div className="input-group">
-              <label>Password</label>
+              <label>Mật khẩu</label>
               <div className="input-wrapper" style={{ position: 'relative' }}>
                 <FaLock className="icon" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   name="password"
-                  placeholder="********"
+                  placeholder="Mật khẩu"
                   value={form.password}
                   onChange={onChange}
+                  autoComplete="new-password"
                   required
                 />
                 <span
@@ -172,15 +198,16 @@ export const RegisterForm = ({
               </div>
             </div>
             <div className="input-group">
-              <label>Confirm password</label>
+              <label>Xác nhận mật khẩu</label>
               <div className="input-wrapper" style={{ position: 'relative' }}>
                 <FaLock className="icon" />
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   name="confirmPassword"
-                  placeholder="********"
+                  placeholder="Xác nhận mật khẩu"
                   value={form.confirmPassword}
                   onChange={onChange}
+                  autoComplete="new-password"
                   required
                 />
                 <span
@@ -196,14 +223,15 @@ export const RegisterForm = ({
               </div>
             </div>
             <div className="input-group">
-              <label>Date of birth</label>
+              <label>Ngày sinh</label>
               <div className="input-wrapper">
                 <FaBirthdayCake className="icon" />
                 <input 
                   type="date" 
                   name="dateOfBirth" 
                   value={form.dateOfBirth} 
-                  onChange={onChange} 
+                  onChange={onChange}
+                  autoComplete="bday"
                   required 
                 />
               </div>
@@ -212,14 +240,15 @@ export const RegisterForm = ({
               </div>
             </div>
             <div className="input-group">
-              <label>Address</label>
+              <label>Địa chỉ</label>
               <div className="input-wrapper">
                 <FaMapMarkerAlt className="icon" />
                 <input 
                   name="address" 
-                  placeholder="e.g. 123 Main St" 
+                  placeholder="VD: 123 Nguyễn Văn Cừ" 
                   value={form.address} 
-                  onChange={onChange} 
+                  onChange={onChange}
+                  autoComplete="street-address"
                   required 
                 />
               </div>
@@ -228,19 +257,20 @@ export const RegisterForm = ({
               </div>
             </div>
             <div className="input-group">
-              <label>Gender</label>
+              <label>Giới tính</label>
               <div className="input-wrapper">
                 <FaTransgender className="icon" />
                 <select 
                   name="gender" 
                   value={form.gender} 
-                  onChange={onChange} 
+                  onChange={onChange}
+                  autoComplete="off"
                   required
                 >
-                  <option value="">Select gender</option>
-                  <option value={GENDER_OPTIONS.MALE}>Male</option>
-                  <option value={GENDER_OPTIONS.FEMALE}>Female</option>
-                  <option value={GENDER_OPTIONS.OTHER}>Other</option>
+                  <option value="">Chọn giới tính</option>
+                  <option value={GENDER_OPTIONS.MALE}>Nam</option>
+                  <option value={GENDER_OPTIONS.FEMALE}>Nữ</option>
+                  <option value={GENDER_OPTIONS.OTHER}>Khác</option>
                 </select>
               </div>
               <div style={{ minHeight: 16, fontSize: 12, color: fieldErrors.gender ? '#d93025' : 'transparent', marginTop: 2 }}>
@@ -253,11 +283,11 @@ export const RegisterForm = ({
             <input type="checkbox" id="agree" checked={agreed} onChange={() => setAgreed(!agreed)} />
             <label htmlFor="agree">
               <span>
-                I agree to the terms and conditions. {' '}
+                Tôi đồng ý với các điều khoản và điều kiện. {' '}
                 <button type="button" className="terms-link" onClick={() => setShowTerms(true)}>
-                  Terms of service
+                  Điều khoản dịch vụ
                 </button>{' '}
-                and <a href="/privacy" target="_blank">Privacy Policy</a>.
+                và <a href="/privacy" target="_blank">Chính sách bảo mật</a>.
               </span>
             </label>
           </div>
@@ -270,10 +300,10 @@ export const RegisterForm = ({
 
           <div className="button-row">
             <button type="button" className="action-btn" onClick={handleBack} disabled={isSubmitting}>
-              Back
+              Quay lại
             </button>
             <button type="submit" className="action-btn" disabled={isSubmitting || !agreed}>
-              Sign up
+              Đăng ký
             </button>
           </div>
         </form>
@@ -281,11 +311,11 @@ export const RegisterForm = ({
         {showTerms && (
           <div className="terms-overlay">
             <div className="terms-modal">
-              <h2 style={{ color: '#b71c1c', marginBottom: 16 }}>Privacy policy</h2>
+              <h2 style={{ color: '#b71c1c', marginBottom: 16 }}>Chính sách bảo mật</h2>
               <div style={{ textAlign: 'left', maxHeight: 320, overflowY: 'auto', fontSize: 15, marginBottom: 18, whiteSpace: 'pre-line' }}>
-                <div style={{ marginBottom: 6 }}>Privacy policy content...</div>
+                <div style={{ marginBottom: 6 }}>Nội dung chính sách bảo mật...</div>
               </div>
-              <button onClick={() => setShowTerms(false)} className="btn-verify" style={{ marginTop: 8 }}>Close</button>
+              <button onClick={() => setShowTerms(false)} className="btn-verify" style={{ marginTop: 8 }}>Đóng</button>
             </div>
           </div>
         )}

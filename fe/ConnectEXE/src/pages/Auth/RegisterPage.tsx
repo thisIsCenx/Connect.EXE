@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RegisterForm } from '../../components/auth/RegisterForm';
-import { register, verifyRegisterCode, resendRegisterCode, testApiConnection, testRegisterEndpoint } from '../../services/AuthService';
+import { RegisterForm } from '../../components/Auth/RegisterForm';
+import { register, verifyRegisterCode, resendRegisterCode } from '../../services/AuthService';
 import type { RegisterRequestDTO } from '../../types/request/AuthRequestDTO';
 import './styles/RegisterPage.scss';
-import { RegisterVerifyOTP } from '../../components/auth/RegisterVerifyOTP';
+import { RegisterVerifyOTP } from '../../components/Auth/RegisterVerifyOTP';
 
 export const RegisterPage = () => {
   const [form, setForm] = useState<RegisterRequestDTO & { confirmPassword: string }>({
@@ -38,56 +38,37 @@ export const RegisterPage = () => {
 
   const navigate = useNavigate();
 
-  // Test API connection on component mount
-  useEffect(() => {
-    const testConnection = async () => {
-      console.log('🔍 Testing API connection on RegisterPage mount...');
-      const isConnected = await testApiConnection();
-      if (!isConnected) {
-        console.warn('⚠️ API connection test failed');
-      }
-      
-      // Test register endpoint specifically
-      console.log('🔍 Testing register endpoint...');
-      const isRegisterWorking = await testRegisterEndpoint();
-      if (!isRegisterWorking) {
-        console.warn(' Register endpoint test failed');
-      }
-    };
-    testConnection();
-  }, []);
-
 
 
   const validateFields = (fields = form) => {
     const errors: typeof fieldErrors = {};
     
-    // Email: kiểm tra định dạng hợp lệ nâng cao (giống CGV)
+    // Email: kiểm tra định dạng hợp lệ nâng cao
     if (fields.email) {
       // Regex: không bắt đầu/kết thúc bằng dấu chấm, không có 2 dấu chấm liên tiếp, chỉ cho phép ký tự hợp lệ
       const emailRegex = /^(?![.])[A-Za-z0-9._%+-]+@(?![.])[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?<![.])$/;
       if (!emailRegex.test(fields.email) || /\.\./.test(fields.email)) {
-        errors.email = 'auth.validation.invalidEmail';
+        errors.email = 'Email không hợp lệ';
       }
     }
     
     // Số điện thoại Việt Nam hợp lệ (đầu số di động hợp lệ)
     if (fields.phoneNumber && !/^(0|\+84)(3[2-9]|5[6|8|9]|7[0|6-9]|8[1-5]|9[0-9])[0-9]{7}$/.test(fields.phoneNumber)) {
-      errors.phoneNumber = 'auth.validation.invalidPhone';
+      errors.phoneNumber = 'Số điện thoại không hợp lệ';
     }
     
     // CCCD hợp lệ (9-12 số)
     if (fields.identityCard && !/^[0-9]{9,12}$/.test(fields.identityCard)) {
-      errors.identityCard = 'auth.validation.invalidIdentityCard';
+      errors.identityCard = 'Số CMND/CCCD không hợp lệ';
     }
     
-    // Ngày sinh hợp lệ (theo CGV: phải đủ 16 tuổi trở lên)
+    // Ngày sinh hợp lệ (phải đủ 16 tuổi trở lên)
     if (fields.dateOfBirth) {
       const dob = new Date(fields.dateOfBirth);
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear();
       if (isNaN(dob.getTime()) || age < 16 || dob > today) {
-        errors.dateOfBirth = 'auth.validation.invalidAge';
+        errors.dateOfBirth = 'Phải đủ 16 tuổi trở lên';
       }
     }
     
@@ -95,31 +76,31 @@ export const RegisterPage = () => {
     if (fields.fullName) {
       const fullName = fields.fullName.trim();
       if (fullName.length < 2) {
-        errors.fullName = 'auth.validation.fullNameMinLength', { minLength: 2 };
+        errors.fullName = 'Họ tên phải có ít nhất 2 ký tự';
       } else if (fullName.length > 50) {
-        errors.fullName = 'auth.validation.fullNameMaxLength', { maxLength: 50 };
+        errors.fullName = 'Họ tên không được quá 50 ký tự';
       } else if (!/^([A-Za-zÀ-ỹà-ỹ\s']+)$/.test(fullName)) {
-        errors.fullName = 'auth.errors.invalidFullName';
+        errors.fullName = 'Họ tên không hợp lệ';
       }
     }
     
     // Password: ít nhất 8 ký tự, có chữ hoa, thường, số, ký tự đặc biệt
     if (fields.password) {
       if (fields.password.length < 8) {
-        errors.password = 'auth.validation.passwordMinLength', { minLength: 8 };
+        errors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
       } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(fields.password)) {
-        errors.password = 'auth.validation.passwordComplexity';
+        errors.password = 'Mật khẩu phải có chữ hoa, thường, số và ký tự đặc biệt';
       }
     }
     
     // Confirm password: phải trùng khớp
     if (fields.password && fields.confirmPassword && fields.password !== fields.confirmPassword) {
-      errors.confirmPassword = 'auth.validation.passwordMismatch';
+      errors.confirmPassword = 'Mật khẩu xác nhận không khớp';
     }
     
     // Gender: bắt buộc
     if (!fields.gender) {
-      errors.gender = 'auth.validation.genderRequired'
+      errors.gender = 'Vui lòng chọn giới tính'
     }
     
     return errors;
@@ -159,7 +140,7 @@ export const RegisterPage = () => {
 
     // Client-side validation for confirm password
     if (password !== confirmPassword) {
-      setFieldErrors(prev => ({ ...prev, confirmPassword: 'auth.validation.passwordMismatch' }));
+      setFieldErrors(prev => ({ ...prev, confirmPassword: 'Mật khẩu xác nhận không khớp' }));
       setIsSubmitting(false);
       return;
     }
@@ -168,14 +149,25 @@ export const RegisterPage = () => {
     setFieldErrors({});
 
     try {
-      const { confirmPassword, ...formData } = form;
+      const { confirmPassword, ...raw } = form;
+      // Normalize string fields to avoid server-side mismatches (trim/case)
+      const formData: RegisterRequestDTO = {
+        fullName: String(raw.fullName || '').trim(),
+        email: String(raw.email || '').trim().toLowerCase(),
+        phoneNumber: String(raw.phoneNumber || '').trim(),
+        identityCard: String(raw.identityCard || '').trim(),
+        password: String(raw.password || '').trim(),
+        dateOfBirth: String(raw.dateOfBirth || '').trim(),
+        gender: String(raw.gender || '').trim(),
+        address: String(raw.address || '').trim(),
+      };
       const response = await register(formData);
       // Xử lý response mới với thông tin chi tiết về email/phone/identityCard đã được sử dụng
       if (response.emailUsed || response.phoneUsed || response.identityCardUsed) {
         let newFieldErrors: { email?: string; phoneNumber?: string; identityCard?: string } = {};
-        if (response.emailUsed) newFieldErrors.email = 'auth.validation.emailAlreadyExists';
-        if (response.phoneUsed) newFieldErrors.phoneNumber = 'auth.validation.phoneAlreadyExists';
-        if (response.identityCardUsed) newFieldErrors.identityCard = 'auth.validation.invalidIdentityCard';
+        if (response.emailUsed) newFieldErrors.email = 'Email này đã được sử dụng';
+        if (response.phoneUsed) newFieldErrors.phoneNumber = 'Số điện thoại này đã được sử dụng';
+        if (response.identityCardUsed) newFieldErrors.identityCard = 'Số CMND/CCCD này đã được sử dụng';
         setFieldErrors({ ...localErrors, ...newFieldErrors });
         setMessage('');
         return;
@@ -183,7 +175,7 @@ export const RegisterPage = () => {
       // Nếu không có lỗi từng trường, set message tổng như cũ
       setMessage(response.message);
       setFieldErrors({});
-      localStorage.setItem("register_email", email);
+  localStorage.setItem("register_email", (email || '').trim().toLowerCase());
       if (response.message.toLowerCase().includes('successful')) {
         setShowVerifyOverlay(true);
       }
@@ -193,16 +185,16 @@ export const RegisterPage = () => {
         // Xử lý lỗi chi tiết từ BE trả về
         const { emailUsed, phoneUsed, identityCardUsed, fieldErrors: beFieldErrors } = err.response.data;
         let newFieldErrors: { email?: string; phoneNumber?: string; identityCard?: string } = {};
-        if (emailUsed) newFieldErrors.email = 'auth.validation.emailAlreadyExists';
-        if (phoneUsed) newFieldErrors.phoneNumber = 'auth.validation.phoneAlreadyExists';
-        if (identityCardUsed) newFieldErrors.identityCard = 'auth.validation.invalidIdentityCard';
-        // Áp dụng i18n cho các lỗi BE trả về nếu có
+        if (emailUsed) newFieldErrors.email = 'Email này đã được sử dụng';
+        if (phoneUsed) newFieldErrors.phoneNumber = 'Số điện thoại này đã được sử dụng';
+        if (identityCardUsed) newFieldErrors.identityCard = 'Số CMND/CCCD này đã được sử dụng';
+        // Áp dụng thông báo cho các lỗi BE trả về nếu có
         let mergedFieldErrors: Record<string, string> = { ...localErrors, ...newFieldErrors };
         if (beFieldErrors) {
           Object.entries(beFieldErrors).forEach(([key, value]) => {
-            // Nếu BE trả về đúng key, ưu tiên dùng i18n nếu có
-            if (key === 'passwordMismatch') mergedFieldErrors['confirmPassword'] = 'auth.validation.passwordMismatch';
-            else if (key === 'password') mergedFieldErrors['password'] = 'auth.validation.passwordComplexity';
+            // Nếu BE trả về đúng key, ưu tiên dùng thông báo tiếng Việt
+            if (key === 'passwordMismatch') mergedFieldErrors['confirmPassword'] = 'Mật khẩu xác nhận không khớp';
+            else if (key === 'password') mergedFieldErrors['password'] = 'Mật khẩu phải có chữ hoa, thường, số và ký tự đặc biệt';
             else mergedFieldErrors[key] = value as string;
           });
         }
@@ -211,23 +203,23 @@ export const RegisterPage = () => {
         return;
       }
       if (err.response?.status === 405) {
-        setMessage('auth.errors.invalidFormat');
+        setMessage('Định dạng dữ liệu không hợp lệ');
       } else if (err.response?.status === 404) {
-        setMessage('auth.errors.notFound');
+        setMessage('Không tìm thấy tài nguyên');
       } else if (err.response?.status === 500) {
-        setMessage('auth.errors.serverError');
+        setMessage('Lỗi máy chủ, vui lòng thử lại sau');
       } else if (err.response?.data?.fieldErrors) {
         // Handle validation errors from backend
         const backendFieldErrors = err.response.data.fieldErrors;
         setFieldErrors({ ...localErrors, ...backendFieldErrors });
-        setMessage('auth.errors.invalidFormat');
+        setMessage('Dữ liệu không hợp lệ');
       } else if (err.response?.data?.message) {
         const errorMessage = err.response.data.message;
         setMessage(errorMessage);
       } else if (err.message) {
         setMessage(err.message);
       } else {
-        setMessage('auth.errors.serverError');
+        setMessage('Lỗi máy chủ, vui lòng thử lại sau');
       }
     } finally {
       setIsSubmitting(false);

@@ -1,4 +1,4 @@
-import ChangePassword from '../../components/auth/ChangePassword';
+import ChangePassword from '../../components/Auth/ChangePassword';
 import './styles/ChangePasswordPage.scss';
 
 export default function ChangePasswordPage() {

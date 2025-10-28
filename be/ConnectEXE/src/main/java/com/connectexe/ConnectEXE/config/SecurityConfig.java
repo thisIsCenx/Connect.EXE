@@ -20,7 +20,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 // AntPathRequestMatcher resolved via fully-qualified name in filterChain to avoid import issues
 import org.springframework.web.filter.OncePerRequestFilter;
 import com.connectexe.ConnectEXE.auth.service.CustomOAuth2UserService;
@@ -145,50 +144,55 @@ public class SecurityConfig {
                 .addFilterBefore(cookieAuthFilter(), org.springframework.security.web.context.SecurityContextHolderFilter.class)
                 .cors(cors -> cors.configure(http))
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers("/api/locations").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/theaters").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/theaters/location/**").permitAll()
-                        .requestMatchers(RouteConst.IMAGES + "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, RouteConst.ADMIN_BASE + RouteConst.MOVIE,
-                                RouteConst.ADMIN_BASE + RouteConst.MOVIE_SEARCH).permitAll()
-                        .requestMatchers(HttpMethod.GET, RouteConst.ADMIN_BASE + RouteConst.SHOWTIME + "/**",
-                                RouteConst.ADMIN_BASE + RouteConst.ROOM).permitAll()
-                        .requestMatchers(HttpMethod.GET, RouteConst.ADMIN_BASE + RouteConst.TICKETS).permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui/**", "/webjars/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, RouteConst.ADMIN_BASE + RouteConst.PROMOTION + "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, RouteConst.BOOK_BASE + RouteConst.MOVIE,
-                                RouteConst.BOOK_BASE + RouteConst.MOVIE + RouteConst.API_PARAM_ID_PATH,
-                                RouteConst.BOOK_BASE + RouteConst.SCHEDULE + RouteConst.API_PARAM_ID_PATH,
-                                RouteConst.BOOK_BASE + RouteConst.SCHEDULE + "/id" + RouteConst.API_PARAM_SCHEDULE_ID_PATH,
-                                RouteConst.BOOK_BASE + RouteConst.SEAT + RouteConst.API_PARAM_SCHEDULE_ID_PATH).permitAll()
-                        .requestMatchers(RouteConst.AUTH_BASE + RouteConst.LOGIN, "/login", "/oauth2/**",
-                                RouteConst.AUTH_BASE + RouteConst.REGISTER + "/**",
-                                RouteConst.AUTH_BASE + RouteConst.PASSWORD + "/**", "/error", "/api/test").permitAll()
-                        .requestMatchers(RouteConst.THEATERS).permitAll()
-                        .requestMatchers(HttpMethod.GET, RouteConst.SCHEDULES_THEATER + "/**").permitAll()
-                        .requestMatchers(RouteConst.ADMIN_BASE + RouteConst.EMPLOYEES + "/**").permitAll()
-                        .requestMatchers(RouteConst.ADMIN_BASE + RouteConst.CONCESSION + "/**").permitAll()
-                        .requestMatchers(RouteConst.ADMIN_BASE + RouteConst.PROMOTION + "/**").permitAll()
-                        .requestMatchers(RouteConst.SCORES + "/**").permitAll()
-                        .requestMatchers("/api/admin/statistics").permitAll()
-                        .requestMatchers(HttpMethod.GET, RouteConst.ADMIN_BASE + "/movie/top-booked").permitAll()
-                        .requestMatchers("/api/admin/statistics/revenue/**").permitAll()
-                        // Role-based access
-                        .requestMatchers(HttpMethod.POST, RouteConst.ADMIN_BASE + RouteConst.MOVIE,
-                                RouteConst.ADMIN_BASE + RouteConst.SHOWTIME).hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, RouteConst.ADMIN_BASE + RouteConst.MOVIE + "/**",
-                                RouteConst.ADMIN_BASE + RouteConst.SHOWTIME + "/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, RouteConst.ADMIN_BASE + RouteConst.MOVIE + "/**",
-                                RouteConst.ADMIN_BASE + RouteConst.SHOWTIME + "/**").hasRole("ADMIN")
-                        .requestMatchers(RouteConst.ADMIN_BASE + "/**").hasRole("ADMIN")
-                        .requestMatchers(RouteConst.EMPLOYEE_BASE + "/**").hasRole("EMPLOYEE")
-                        .requestMatchers(HttpMethod.GET, RouteConst.BOOK_BASE + RouteConst.BOOKINGS + "/user",
-                                RouteConst.BOOK_BASE + RouteConst.BOOKINGS + RouteConst.API_PARAM_ID_PATH).authenticated()
-                        .requestMatchers(HttpMethod.POST, RouteConst.BOOK_BASE + RouteConst.CONFIRM).authenticated()
-                        .requestMatchers(HttpMethod.DELETE, RouteConst.BOOK_BASE + RouteConst.BOOKINGS + RouteConst.API_PARAM_ID_PATH).authenticated()
-                        // Others
+        .authorizeHttpRequests(auth -> auth
+            // Public endpoints
+            // Public auth endpoints (login/register/otp/password) should be accessible without auth
+            // Explicit public POST endpoints to avoid any matcher ambiguity
+            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.REGISTER).permitAll()
+            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.REGISTER_VERIFY).permitAll()
+            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.REGISTER_RESEND).permitAll()
+            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.LOGIN).permitAll()
+            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.LOGOUT).permitAll()
+            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.PASSWORD_FORGOT).permitAll()
+            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.PASSWORD_VERIFY).permitAll()
+            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.PASSWORD_RESET).permitAll()
+            .requestMatchers(HttpMethod.POST, RouteConst.OTP_BASE + "/**").permitAll()
+            // OAuth2 success page (optional public)
+            .requestMatchers(HttpMethod.GET, RouteConst.OAUTH2_SUCCESS).permitAll()
+                        // Public read endpoints for the platform
+                        .requestMatchers(HttpMethod.GET, RouteConst.PROJECTS, RouteConst.PROJECTS + "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, RouteConst.SKILLS).permitAll()
+                        .requestMatchers(HttpMethod.GET, RouteConst.MATERIALS + "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, RouteConst.NEWS + "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, RouteConst.FORUM_TOPICS, RouteConst.FORUM_TOPIC_ID_PATH).permitAll()
+                        .requestMatchers(HttpMethod.GET, RouteConst.USERS_ID_PATH).permitAll()
+                        // User profile endpoints
+                        .requestMatchers(HttpMethod.GET, RouteConst.USERS_ME).authenticated()
+                        .requestMatchers(HttpMethod.PATCH, RouteConst.USERS_ME).authenticated()
+                        .requestMatchers(HttpMethod.PATCH, RouteConst.USERS_ME + "/skills").authenticated()
+                        // Projects and related modifications
+                        .requestMatchers(HttpMethod.POST, RouteConst.PROJECTS).authenticated()
+                        .requestMatchers(HttpMethod.PATCH, RouteConst.PROJECTS_ID_PATH).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, RouteConst.PROJECTS_ID_PATH).authenticated()
+                        .requestMatchers(HttpMethod.POST, RouteConst.PROJECTS_ID_PATH + "/members").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, RouteConst.PROJECTS_ID_PATH + "/members/" + "**").authenticated()
+                        .requestMatchers(HttpMethod.POST, RouteConst.PROJECTS_ID_PATH + "/images").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, RouteConst.PROJECT_IMAGE_ID_PATH).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, RouteConst.PROJECT_IMAGE_ID_PATH).authenticated()
+                        .requestMatchers(HttpMethod.GET, RouteConst.PROJECT_REPORTS + "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, RouteConst.PROJECTS_ID_PATH + "/reports").authenticated()
+                        .requestMatchers(HttpMethod.GET, RouteConst.PROJECT_COMMENTS).permitAll()
+                        .requestMatchers(HttpMethod.POST, RouteConst.PROJECT_COMMENTS).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, RouteConst.PROJECT_COMMENTS + "/" + "**").authenticated()
+                        .requestMatchers(HttpMethod.POST, RouteConst.PROJECT_VOTES).authenticated()
+                        .requestMatchers(HttpMethod.DELETE, RouteConst.PROJECT_VOTES).authenticated()
+                        // Support tickets
+                        .requestMatchers(HttpMethod.POST, RouteConst.SUPPORT_TICKETS).authenticated()
+                        .requestMatchers(HttpMethod.GET, RouteConst.SUPPORT_TICKETS).authenticated()
+                        .requestMatchers(HttpMethod.PATCH, RouteConst.SUPPORT_TICKET_ID_PATH).hasAnyRole("ADMIN", "STAFF")
+                        // Forum moderation
+                        .requestMatchers(HttpMethod.PATCH, RouteConst.FORUM_APPROVE).hasAnyRole("TEACHER", "ADMIN")
+                        // Everything else requires authentication
                         .anyRequest().authenticated())
                 .formLogin(form -> form.disable())
                 .oauth2Login(oauth -> oauth
@@ -198,9 +202,6 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .exceptionHandling(ex -> ex
-                        .defaultAuthenticationEntryPointFor(
-                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                                request -> request.getRequestURI() != null && request.getRequestURI().startsWith("/api/"))
                         .authenticationEntryPoint((req, res, e) -> {
                             res.setStatus(HttpStatus.UNAUTHORIZED.value());
                             res.setContentType("application/json");

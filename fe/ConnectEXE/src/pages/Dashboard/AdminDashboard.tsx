@@ -1,15 +1,12 @@
 import {
   CalendarOutlined,
-  FileTextOutlined,
   GiftOutlined,
-  HomeOutlined,
   LogoutOutlined,
-  ShopOutlined,
   TeamOutlined,
   UserOutlined,
   VideoCameraOutlined,
 } from '@ant-design/icons';
-import { Card, Col, Layout, Menu, Row, Statistic, Typography } from 'antd';
+import { Card, Col, Layout, Menu, Row, Typography } from 'antd';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import React, { useEffect, useRef, useState } from 'react';
@@ -23,8 +20,6 @@ function decodeCookieValue(value?: string) {
   return decodeURIComponent(value.replace(/\+/g, ' '));
 }
 
-// Đảm bảo mọi giá trị truyền vào chart là số hợp lệ
-const safeValue = (v: any) => (typeof v === 'number' && !isNaN(v) ? v : 0);
 
 const { Sider } = Layout;
 const { Title } = Typography;
@@ -71,7 +66,7 @@ const AdminDashboard: React.FC = () => {
   const [fullName, setFullName] = useState<string>('');
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const logoutRef = useRef<HTMLDivElement>(null);
-  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
+  // const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
   const [statistics, setStatistics] = useState<{
     userCount: number;
     promotionCount: number;

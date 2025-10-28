@@ -28,7 +28,7 @@ html, body, #root {
 
 .auth-left { flex: 1 1 580px; padding: 56px; color: #fff; }
 .auth-right { width: 420px; position: relative; }
-.auth-right::before { content: ""; position: absolute; inset: 18px; border-radius: 14px; background-image: url('/assets/auth-hero.jpg'); background-size: cover; background-position: center; opacity: 0.95; }
+.auth-right::before { content: ""; position: absolute; inset: 18px; border-radius: 14px; background-image: url('/assets/auth-hero.svg'); background-size: cover; background-position: center; opacity: 0.95; }
 
 @media (max-width: 980px) {
   .auth-card { flex-direction: column-reverse; width: 96vw; }

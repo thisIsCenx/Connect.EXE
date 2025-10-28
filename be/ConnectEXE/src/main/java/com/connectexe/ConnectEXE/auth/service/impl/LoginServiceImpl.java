@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
+import java.util.UUID;
 import com.connectexe.ConnectEXE.common.constant.MessageConst;
 
 /**
@@ -40,12 +41,16 @@ public class LoginServiceImpl implements LoginService {
         validatePassword(user, rawPassword, email);
         validateStatus(user, email);
             boolean verified = Boolean.TRUE.equals(user.getIsVerified());
+        // Generate a simple token (UUID) for now. In production replace with JWT or proper token generator.
+        String token = UUID.randomUUID().toString();
+
     return LoginResponse.builder()
         .userId(user.getUserId())
         .fullName(user.getFullName())
         .role(user.getRole())
         .isActive(Boolean.TRUE.equals(user.getIsActive()))
                 .isVerified(verified)
+        .token(token)
         .build();
     }
 

@@ -1,10 +1,10 @@
 package com.connectexe.ConnectEXE.auth.service.impl;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -21,6 +21,9 @@ public class MailServiceImpl implements MailService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Value("${spring.mail.username}")
+    private String fromEmail;
 
     /**
      * Sends a verification email to the user.
@@ -59,13 +62,20 @@ public class MailServiceImpl implements MailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, "utf-8");
             helper.setTo(toEmail);
+            // Set From to the authenticated mailbox to satisfy SMTP servers like Gmail
+            if (fromEmail != null && !fromEmail.isBlank()) {
+                helper.setFrom(fromEmail);
+            }
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
 
+            // Sending mail can throw unchecked MailException when SMTP is not configured.
+            // We swallow it in dev to avoid failing the primary flow.
             mailSender.send(message);
             log.info("Email sent to {} with type {}", toEmail, type);
-        } catch (MessagingException e) {
-            log.error("Failed to send email to: {}", toEmail, e);
+        } catch (Exception e) {
+            // Catch any mail-related errors (MessagingException, MailException, etc.)
+            log.warn("Non-fatal: failed to send verification email to {}: {}", toEmail, e.getMessage());
         }
     }
 }

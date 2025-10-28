@@ -70,8 +70,26 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     if (error.response && error.response.status === 401) {
+      const url = error.config?.url || '';
+      // Don't redirect for public endpoints (auth pages and public checks)
+      const PUBLIC_401_SAFE = [
+        LOGIN_ENDPOINT,
+        REGISTER_ENDPOINT,
+        VERIFY_REGISTER_CODE_ENDPOINT,
+        RESEND_REGISTER_CODE_ENDPOINT,
+        FORGOT_PASSWORD_ENDPOINT,
+        VERIFY_OTP_ENDPOINT,
+        RESET_PASSWORD_ENDPOINT,
+        CHECK_EMAIL_ENDPOINT,
+        CHECK_PHONE_ENDPOINT,
+      ];
+      const isPublicSafe = PUBLIC_401_SAFE.some((ep) => url.endsWith(ep));
+      if (isPublicSafe) {
+        return Promise.reject(error);
+      }
+      // For other endpoints, redirect to login
       window.location.href = '/login?error=SessionChanged';
-      return; // Ngăn không trả về Promise.reject nữa
+      return; // stop propagation for other endpoints
     }
     console.error(`❌ ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${error.response?.status}:`, error.response?.data);
     return Promise.reject(error);
@@ -98,12 +116,12 @@ export const verifyRegisterCode = async (
   email: string,
   verificationCode: string
 ): Promise<RegisterResponseDTO> => {
-  const response = await axiosInstance.post(VERIFY_REGISTER_CODE_ENDPOINT, { email, verificationCode });
+  const response = await axiosInstance.post(VERIFY_REGISTER_CODE_ENDPOINT, { email: email.trim().toLowerCase(), verificationCode: verificationCode.trim() });
   return response.data;
 };
 
 export const resendRegisterCode = async (email: string): Promise<RegisterResponseDTO> => {
-  const response = await axiosInstance.post(RESEND_REGISTER_CODE_ENDPOINT, { email });
+  const response = await axiosInstance.post(RESEND_REGISTER_CODE_ENDPOINT, { email: email.trim().toLowerCase() });
   return response.data;
 };
 
