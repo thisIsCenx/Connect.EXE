@@ -26,6 +26,11 @@ public class LoginResponse {
     private boolean isActive;
     /** Whether the user's email is verified. */
     private boolean isVerified;
-    /** Access token returned after successful login. */
+    /** JWT access token for authentication. */
+    private String accessToken;
+    /** JWT refresh token for renewing access token. */
+    private String refreshToken;
+    /** Legacy token field for backwards compatibility. */
+    @Deprecated
     private String token;
 }

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthHeader, removeTokens } from '../utils/jwt';
 import type { UserResponseDTO, UserListResponseDTO } from '../types/response/UserResponseDTO';
 import type { UserUpdateRequestDTO } from '../types/request/UserRequestDTO';
 import {
@@ -50,10 +51,17 @@ const axiosInstance = axios.create({
   },
 });
 
-// Add request interceptor for logging
+// Add request interceptor for logging and JWT token
 axiosInstance.interceptors.request.use(
   (config) => {
     console.log(`🚀 ${config.method?.toUpperCase()} ${config.url}`, config.data || config.params);
+    
+    // Add JWT token to Authorization header if available
+    const authHeader = getAuthHeader();
+    if (authHeader && config.headers) {
+      config.headers['Authorization'] = authHeader;
+    }
+    
     return config;
   },
   (error) => {
@@ -62,7 +70,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Add response interceptor for logging
+// Add response interceptor for logging and token expiration
 axiosInstance.interceptors.response.use(
   (response) => {
     console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
@@ -84,12 +92,13 @@ axiosInstance.interceptors.response.use(
         CHECK_PHONE_ENDPOINT,
       ];
       const isPublicSafe = PUBLIC_401_SAFE.some((ep) => url.endsWith(ep));
-      if (isPublicSafe) {
-        return Promise.reject(error);
+      if (!isPublicSafe) {
+        // Token expired or invalid - clear tokens and redirect
+        console.warn('🚫 401 Unauthorized - Token expired or invalid');
+        removeTokens();
+        window.location.href = '/login?error=SessionExpired';
+        return;
       }
-      // For other endpoints, redirect to login
-      window.location.href = '/login?error=SessionChanged';
-      return; // stop propagation for other endpoints
     }
     console.error(`❌ ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${error.response?.status}:`, error.response?.data);
     return Promise.reject(error);
