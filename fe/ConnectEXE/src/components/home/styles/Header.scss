@@ -188,6 +188,7 @@
 	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 	border-radius: 30px;
 	transition: all 0.3s ease;
+	overflow: hidden; // Ẩn phần gradient thừa ra ngoài
 
 	&::before {
 		content: '';
@@ -202,6 +203,7 @@
 				rgba(91, 120, 199, 0.1) 50%,
 				rgba(102, 126, 234, 0.1) 75%,
 				rgba(118, 75, 162, 0.1) 100%);
+		border-radius: 30px; // Đảm bảo gradient cũng có border-radius
 		z-index: -1;
 	}
 }
@@ -230,8 +232,10 @@
 }
 
 .site-logo__symbol {
-	height:30px; // Điều chỉnh chiều cao của logo nếu cần
+	height: 30px; // Điều chỉnh chiều cao của logo nếu cần
 	width: auto;
+	background: transparent; // Đảm bảo không có background
+	border-radius: 0; // Loại bỏ border-radius nếu có
 }
 
 .site-logo__text-wrapper {
