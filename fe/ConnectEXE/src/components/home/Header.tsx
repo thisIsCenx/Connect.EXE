@@ -130,10 +130,10 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
       return;
     }
 
-    const navSections: Exclude<NavSection, null>[] = ['tin-tuc', 'kham-pha-du-an', 'binh-chon', 'dien-dan'];
+    const navSections: Exclude<NavSection, null>[] = ['kham-pha-du-an', 'tin-tuc', 'binh-chon', 'dien-dan'];
     const sectionIds: Record<Exclude<NavSection, null>, string[]> = {
-      'tin-tuc': ['tin-tuc-gallery', 'tin-tuc-stats', 'tin-tuc-partners'],
       'kham-pha-du-an': ['kham-pha-du-an-hero', 'kham-pha-du-an-featured', 'kham-pha-du-an-products'],
+      'tin-tuc': ['tin-tuc-gallery', 'tin-tuc-stats', 'tin-tuc-partners'],
       'binh-chon': ['binh-chon'],
       'dien-dan': ['dien-dan'],
     };
@@ -233,18 +233,18 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
           </Link>
           <nav className="center-nav">
             <Link 
-              to={`${RouteConst.HOME}#tin-tuc-gallery`} 
-              className={`nav-item ${activeNav === 'tin-tuc' ? 'nav-featured' : ''}`}
-              onClick={(e) => handleNavClick(e, 'tin-tuc', 'tin-tuc-gallery')}
-            >
-              Tin Tức
-            </Link>
-            <Link 
               to={`${RouteConst.HOME}#kham-pha-du-an-hero`} 
               className={`nav-item ${activeNav === 'kham-pha-du-an' ? 'nav-featured' : ''}`}
               onClick={(e) => handleNavClick(e, 'kham-pha-du-an', 'kham-pha-du-an-hero')}
             >
               Khám phá dự án
+            </Link>
+            <Link 
+              to={`${RouteConst.HOME}#tin-tuc-gallery`} 
+              className={`nav-item ${activeNav === 'tin-tuc' ? 'nav-featured' : ''}`}
+              onClick={(e) => handleNavClick(e, 'tin-tuc', 'tin-tuc-gallery')}
+            >
+              Tin Tức
             </Link>
             <Link 
               to={`${RouteConst.HOME}#binh-chon`} 
