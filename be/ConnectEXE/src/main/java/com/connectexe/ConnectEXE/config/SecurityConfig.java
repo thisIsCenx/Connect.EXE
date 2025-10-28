@@ -20,7 +20,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-// AntPathRequestMatcher resolved via fully-qualified name in filterChain to avoid import issues
 import org.springframework.web.filter.OncePerRequestFilter;
 import com.connectexe.ConnectEXE.auth.service.CustomOAuth2UserService;
 import com.connectexe.ConnectEXE.auth.service.CustomUserDetailsService;
@@ -60,29 +59,29 @@ public class SecurityConfig {
      *
      * @return DaoAuthenticationProvider instance
      */
-                @Bean
-                public org.springframework.security.authentication.AuthenticationProvider authenticationProvider() {
-                        return new org.springframework.security.authentication.AuthenticationProvider() {
-                                @Override
-                                public org.springframework.security.core.Authentication authenticate(org.springframework.security.core.Authentication authentication) throws org.springframework.security.core.AuthenticationException {
-                                        String username = authentication.getName();
-                                        String rawPassword = authentication.getCredentials() == null ? null : authentication.getCredentials().toString();
-                                        org.springframework.security.core.userdetails.UserDetails userDetails = ((UserDetailsService) userDetailsService).loadUserByUsername(username);
-                                        if (userDetails == null) {
-                                                throw new org.springframework.security.authentication.BadCredentialsException("Invalid credentials");
-                                        }
-                                        if (!passwordEncoder().matches(rawPassword, userDetails.getPassword())) {
-                                                throw new org.springframework.security.authentication.BadCredentialsException("Invalid credentials");
-                                        }
-                                        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                                }
-
-                                @Override
-                                public boolean supports(Class<?> authentication) {
-                                        return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
-                                }
-                        };
+    @Bean
+    public org.springframework.security.authentication.AuthenticationProvider authenticationProvider() {
+        return new org.springframework.security.authentication.AuthenticationProvider() {
+            @Override
+            public org.springframework.security.core.Authentication authenticate(org.springframework.security.core.Authentication authentication) throws org.springframework.security.core.AuthenticationException {
+                String username = authentication.getName();
+                String rawPassword = authentication.getCredentials() == null ? null : authentication.getCredentials().toString();
+                org.springframework.security.core.userdetails.UserDetails userDetails = ((UserDetailsService) userDetailsService).loadUserByUsername(username);
+                if (userDetails == null) {
+                    throw new org.springframework.security.authentication.BadCredentialsException("Invalid credentials");
                 }
+                if (!passwordEncoder().matches(rawPassword, userDetails.getPassword())) {
+                    throw new org.springframework.security.authentication.BadCredentialsException("Invalid credentials");
+                }
+                return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            }
+
+            @Override
+            public boolean supports(Class<?> authentication) {
+                return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
+            }
+        };
+    }
 
     /**
      * Provides the authentication manager bean.
@@ -98,31 +97,54 @@ public class SecurityConfig {
 
     /**
      * Custom filter to authenticate users based on role cookies.
+     * FIXED: Skip OAuth2 endpoints to avoid interfering with OAuth2 authentication flow.
      *
      * @return OncePerRequestFilter instance
      */
     @Bean
     public OncePerRequestFilter cookieAuthFilter() {
         return new OncePerRequestFilter() {
+            private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger("CookieAuthFilter");
+            
             @Override
             protected void doFilterInternal(HttpServletRequest req,
                     HttpServletResponse res,
                     FilterChain chain) throws ServletException, IOException {
-                Cookie[] cookies = req.getCookies();
-                if (cookies != null) {
-                    for (Cookie cookie : cookies) {
-                        if ("role".equals(cookie.getName())) {
-                            String role = cookie.getValue();
-                            if (role != null && !role.isEmpty()) {
-                                String principal = "cookieUser_" + role.toLowerCase();
-                                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                                        principal, null,
-                                        List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())));
-                                SecurityContextHolder.getContext().setAuthentication(auth);
-                                break;
+                
+                String requestURI = req.getRequestURI();
+                log.debug("Processing request: {} {}", req.getMethod(), requestURI);
+                
+                // CRITICAL FIX: Skip cookie authentication for OAuth2 endpoints
+                // This prevents interference with OAuth2 authentication flow
+                if (requestURI.startsWith("/oauth2/") || 
+                    requestURI.startsWith("/login/oauth2/") ||
+                    requestURI.equals(RouteConst.OAUTH2_SUCCESS)) {
+                    log.info("⏭️ Skipping cookie auth for OAuth2 endpoint: {}", requestURI);
+                    chain.doFilter(req, res);
+                    return;
+                }
+
+                // Only apply cookie auth if not already authenticated
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                    Cookie[] cookies = req.getCookies();
+                    if (cookies != null) {
+                        for (Cookie cookie : cookies) {
+                            if ("role".equals(cookie.getName())) {
+                                String role = cookie.getValue();
+                                if (role != null && !role.isEmpty()) {
+                                    log.info("🔐 Setting cookie authentication for role: {}", role);
+                                    String principal = "cookieUser_" + role.toLowerCase();
+                                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                                            principal, null,
+                                            List.of(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())));
+                                    SecurityContextHolder.getContext().setAuthentication(auth);
+                                    break;
+                                }
                             }
                         }
                     }
+                } else {
+                    log.debug("Already authenticated: {}", SecurityContextHolder.getContext().getAuthentication().getName());
                 }
                 chain.doFilter(req, res);
             }
@@ -140,26 +162,24 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authenticationProvider(authenticationProvider())
-                // use SecurityContextHolderFilter (replacement for deprecated SecurityContextPersistenceFilter)
                 .addFilterBefore(cookieAuthFilter(), org.springframework.security.web.context.SecurityContextHolderFilter.class)
                 .cors(cors -> cors.configure(http))
                 .csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests(auth -> auth
-            // Public endpoints
-            // Public auth endpoints (login/register/otp/password) should be accessible without auth
-            // Explicit public POST endpoints to avoid any matcher ambiguity
-            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.REGISTER).permitAll()
-            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.REGISTER_VERIFY).permitAll()
-            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.REGISTER_RESEND).permitAll()
-            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.LOGIN).permitAll()
-            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.LOGOUT).permitAll()
-            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.PASSWORD_FORGOT).permitAll()
-            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.PASSWORD_VERIFY).permitAll()
-            .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.PASSWORD_RESET).permitAll()
-            .requestMatchers(HttpMethod.POST, RouteConst.OTP_BASE + "/**").permitAll()
-            // OAuth2 success page (optional public)
-            .requestMatchers(HttpMethod.GET, RouteConst.OAUTH2_SUCCESS).permitAll()
-                        // Public read endpoints for the platform
+                .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
+                        .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.REGISTER).permitAll()
+                        .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.REGISTER_VERIFY).permitAll()
+                        .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.REGISTER_RESEND).permitAll()
+                        .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.LOGIN).permitAll()
+                        .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.LOGOUT).permitAll()
+                        .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.PASSWORD_FORGOT).permitAll()
+                        .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.PASSWORD_VERIFY).permitAll()
+                        .requestMatchers(HttpMethod.POST, RouteConst.AUTH_BASE + RouteConst.PASSWORD_RESET).permitAll()
+                        .requestMatchers(HttpMethod.POST, RouteConst.OTP_BASE + "/**").permitAll()
+                        // OAuth2 endpoints - MUST be public
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, RouteConst.OAUTH2_SUCCESS).permitAll()
+                        // Public read endpoints
                         .requestMatchers(HttpMethod.GET, RouteConst.PROJECTS, RouteConst.PROJECTS + "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, RouteConst.SKILLS).permitAll()
                         .requestMatchers(HttpMethod.GET, RouteConst.MATERIALS + "/**").permitAll()

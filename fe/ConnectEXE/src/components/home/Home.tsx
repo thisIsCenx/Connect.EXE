@@ -110,146 +110,145 @@ const Home: React.FC = () => {
   }, []);
 
   return (
-    <div className="wix-homepage">
-      <Header breadcrumbs={[]} />
+      <div className="wix-homepage">
+        <Header breadcrumbs={[]} />
 
-      <main className="wix-main">
-        {/* Hero Section - Wix Style */}
-        <section className="wix-hero">
-          <div className="wix-hero-content">
-            <h1 className="wix-hero-title">Khám phá dự án khởi nghiệp tiêu biểu 2025</h1>
-            <button className="wix-cta-button">Khám phá ngay</button>
-          </div>
-        </section>
-
-        {/* Gallery Section - "Hơn 50+ nhà khởi nghiệp trẻ" */}
-        <section className="wix-gallery-section">
-          <div className="wix-gallery-header">
-            <h2 className="wix-section-title">Hơn 50+ nhà khởi nghiệp trẻ</h2>
-            <div className="wix-gallery-stats">
-              <span>48+ dự án công nghệ</span>
-              <span>20+ dự án công nghiệp</span>
-              <span>10+ dự án tái tạo môi trường</span>
+        <main className="wix-main">
+          {/* ID DUY NHẤT: Thuộc nhóm "Khám phá dự án" */}
+          <section id="kham-pha-du-an-hero" className="wix-hero">
+            <div className="wix-hero-content">
+              <h1 className="wix-hero-title">Khám phá dự án khởi nghiệp tiêu biểu 2025</h1>
+              <button className="wix-cta-button">Khám phá ngay</button>
             </div>
-          </div>
-          <div className="wix-gallery-grid">
-            {galleryImages.map((img, i) => (
-              <div key={i} className="wix-gallery-item reveal">
-                <img src={img} alt={`Gallery ${i + 1}`} loading="lazy" decoding="async" />
-              </div>
-            ))}
-          </div>
-        </section>
+          </section>
 
-        {/* Featured Projects 2025 - With overlay style */}
-        <section className="wix-featured-section">
-          <h2 className="wix-section-title">Dự án tiêu biểu nhất 2025</h2>
-          <p className="wix-featured-subtitle">Trải nghiệm học tập cá nhân hóa do sinh viên Việt phát triển</p>
-          <p className="wix-featured-description">
-            Xuất phát từ những khó khăn trong việc tìm ra phương pháp học hiệu quả cho em trai mình, 
-            Vũ Trung Quân – sinh viên FPTU campus Hà Nội, Founder dự án Aithenos đã cùng các cộng sự 
-            là sinh viên đến từ nhiều trường đại học khác chung tay xây dựng Aithenos – một ứng dụng AI 
-            giúp cá nhân hóa lộ trình học tập cho học sinh.
-          </p>
-          
-          <div className="wix-featured-projects">
-            {featuredProjects.map((project) => (
-              <div key={project.id} className="wix-project-card reveal">
-                <div className="wix-project-overlay">
-                  <div className="wix-project-number">{project.number}</div>
-                  <div className="wix-project-content">
-                    <h3 className="wix-project-title">{project.title}</h3>
-                    <p className="wix-project-desc">{project.desc}</p>
+          {/* ID DUY NHẤT: Thuộc nhóm "Tin tức" */}
+          <section id="tin-tuc-gallery" className="wix-gallery-section">
+            <div className="wix-gallery-header">
+              <h2 className="wix-section-title">Hơn 50+ nhà khởi nghiệp trẻ</h2>
+              <div className="wix-gallery-stats">
+                <span>48+ dự án công nghệ</span>
+                <span>20+ dự án công nghiệp</span>
+                <span>10+ dự án tái tạo môi trường</span>
+              </div>
+            </div>
+            <div className="wix-gallery-grid">
+              {galleryImages.map((img, i) => (
+                <div key={i} className="wix-gallery-item reveal">
+                  <img src={img} alt={`Gallery ${i + 1}`} loading="lazy" decoding="async" />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ID DUY NHẤT: Thuộc nhóm "Khám phá dự án" */}
+          <section id="kham-pha-du-an-featured" className="wix-featured-section">
+            <h2 className="wix-section-title">Dự án tiêu biểu nhất 2025</h2>
+            <p className="wix-featured-subtitle">Trải nghiệm học tập cá nhân hóa do sinh viên Việt phát triển</p>
+            <p className="wix-featured-description">
+              Xuất phát từ những khó khăn trong việc tìm ra phương pháp học hiệu quả cho em trai mình, 
+              Vũ Trung Quân – sinh viên FPTU campus Hà Nội, Founder dự án Aithenos đã cùng các cộng sự 
+              là sinh viên đến từ nhiều trường đại học khác chung tay xây dựng Aithenos – một ứng dụng AI 
+              giúp cá nhân hóa lộ trình học tập cho học sinh.
+            </p>
+            <div className="wix-featured-projects">
+              {featuredProjects.map((project) => (
+                <div key={project.id} className="wix-project-card reveal">
+                  <div className="wix-project-overlay">
+                    <div className="wix-project-number">{project.number}</div>
+                    <div className="wix-project-content">
+                      <h3 className="wix-project-title">{project.title}</h3>
+                      <p className="wix-project-desc">{project.desc}</p>
+                    </div>
+                  </div>
+                  <div className="wix-project-image">
+                    <img src={project.img} alt={project.title} loading="lazy" decoding="async" />
                   </div>
                 </div>
-                <div className="wix-project-image">
-                  <img src={project.img} alt={project.title} loading="lazy" decoding="async" />
+              ))}
+            </div>
+          </section>
+
+          {/* ID DUY NHẤT: Thuộc nhóm "Khám phá dự án" */}
+          <section id="kham-pha-du-an-products" className="wix-products-section">
+            <h2 className="wix-section-title">Sản phẩm dự án tiêu biểu</h2>
+            <p className="wix-section-subtitle">Technology, Education, Recycle</p>
+            <p className="wix-products-desc">
+              Một số sản phẩm và dự án tiêu biểu được đánh giá cao và đạt hiệu quả trong những lần chạy thử nghiệm.
+            </p>
+            <div className="wix-products-showcase">
+              <div className="wix-product-highlight">SmartPure</div>
+            </div>
+          </section>
+
+          {/* ID DUY NHẤT: Thuộc nhóm "Tin tức" */}
+          <section id="tin-tuc-stats" className="wix-stats-section">
+            <h2 className="wix-section-title">Những con số ấn tượng</h2>
+            <div className="wix-stats-grid">
+              {statsData.map((stat, i) => (
+                <div key={i} className={`wix-stat-card wix-stat-${stat.color} reveal`}>
+                  <div className="wix-stat-number">{stat.number}</div>
+                  <div className="wix-stat-label">{stat.label}</div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
 
-        {/* Products Section */}
-        <section className="wix-products-section">
-          <h2 className="wix-section-title">Sản phẩm dự án tiêu biểu</h2>
-          <p className="wix-section-subtitle">Technology, Education, Recycle</p>
-          <p className="wix-products-desc">
-            Một số sản phẩm và dự án tiêu biểu được đánh giá cao và đạt hiệu quả trong những lần chạy thử nghiệm.
-          </p>
-          <div className="wix-products-showcase">
-            <div className="wix-product-highlight">SmartPure</div>
-          </div>
-        </section>
-
-        {/* Stats Section - Wix Cards Style */}
-        <section className="wix-stats-section">
-          <h2 className="wix-section-title">Những con số ấn tượng</h2>
-          <div className="wix-stats-grid">
-            {statsData.map((stat, i) => (
-              <div key={i} className={`wix-stat-card wix-stat-${stat.color} reveal`}>
-                <div className="wix-stat-number">{stat.number}</div>
-                <div className="wix-stat-label">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Startup Partners */}
-        <section className="wix-partners-section">
-          <div className="wix-partners-header">
-            <span className="wix-partners-label">Nhà khởi nghiệp</span>
-            <h2 className="wix-section-title">STARTUP PARTNER</h2>
-          </div>
-          <div className="wix-partners-grid">
-            {partners.map((partner, i) => (
-              <div key={i} className="wix-partner-logo reveal">
-                {partner}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Vote Section */}
-        <section className="wix-vote-section">
-          <div className="wix-vote-header">
-            <h2 className="wix-section-title">Vote Your Team</h2>
-            <p className="wix-vote-subtitle">Bình chọn dự án khởi nghiệp yêu thích của bạn</p>
-          </div>
-          <div className="wix-vote-list">
-            {voteTeams.map((team) => (
-              <div key={team.id} className="wix-vote-item reveal">
-                <div className="wix-vote-info">
-                  <h3 className="wix-vote-name">{team.name}</h3>
-                  <p className="wix-vote-founder">Founder: {team.founder}</p>
+          {/* ID DUY NHẤT: Thuộc nhóm "Tin tức" */}
+          <section id="tin-tuc-partners" className="wix-partners-section">
+            <div className="wix-partners-header">
+              <span className="wix-partners-label">Nhà khởi nghiệp</span>
+              <h2 className="wix-section-title">STARTUP PARTNER</h2>
+            </div>
+            <div className="wix-partners-grid">
+              {partners.map((partner, i) => (
+                <div key={i} className="wix-partner-logo reveal">
+                  {partner}
                 </div>
-                <button className="wix-vote-button"><span>VOTE</span></button>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
 
-        {/* Forum Section - Blue Cards */}
-        <section className="wix-forum-section">
-          <h2 className="wix-section-title">Diễn đàn thảo luận</h2>
-          <div className="wix-forum-grid">
-            {forumArticles.map((article) => (
-              <div key={article.id} className="wix-forum-card reveal">
-                <h3 className="wix-forum-title">{article.title}</h3>
-                <div className="wix-forum-meta">
-                  <span className="wix-forum-source">{article.source}</span>
-                  <span className="wix-forum-date">{article.date}</span>
+          {/* ID DUY NHẤT: Thuộc nhóm "Bình chọn" */}
+          <section id="binh-chon" className="wix-vote-section">
+            <div className="wix-vote-header">
+              <h2 className="wix-section-title">Vote Your Team</h2>
+              <p className="wix-vote-subtitle">Bình chọn dự án khởi nghiệp yêu thích của bạn</p>
+            </div>
+            <div className="wix-vote-list">
+              {voteTeams.map((team) => (
+                <div key={team.id} className="wix-vote-item reveal">
+                  <div className="wix-vote-info">
+                    <h3 className="wix-vote-name">{team.name}</h3>
+                    <p className="wix-vote-founder">Founder: {team.founder}</p>
+                  </div>
+                  <button className="wix-vote-button"><span>VOTE</span></button>
                 </div>
-                <button className="wix-forum-cta">READ ARTICLE</button>
-              </div>
-            ))}
-          </div>
-        </section>
-      </main>
+              ))}
+            </div>
+          </section>
 
-      <Footer />
-    </div>
-  );
-};
+          {/* ID DUY NHẤT: Thuộc nhóm "Diễn đàn" */}
+          <section id="dien-dan" className="wix-forum-section">
+            <h2 className="wix-section-title">Diễn đàn thảo luận</h2>
+            <div className="wix-forum-grid">
+              {forumArticles.map((article) => (
+                <div key={article.id} className="wix-forum-card reveal">
+                  <h3 className="wix-forum-title">{article.title}</h3>
+                  <div className="wix-forum-meta">
+                    <span className="wix-forum-source">{article.source}</span>
+                    <span className="wix-forum-date">{article.date}</span>
+                  </div>
+                  <button className="wix-forum-cta">READ ARTICLE</button>
+                </div>
+              ))}
+            </div>
+          </section>
+        </main>
+
+        <Footer />
+      </div>
+    );
+  };
 
 export default Home;
