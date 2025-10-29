@@ -1,0 +1,87 @@
+### Admin API Test Requests
+### Sử dụng với REST Client extension trong VS Code hoặc Postman
+
+@baseUrl = http://localhost:8080
+@token = YOUR_JWT_TOKEN_HERE
+
+### 1. Login (để lấy token)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@connectexe.com",
+  "password": "admin123"
+}
+
+### 2. Get Dashboard Statistics
+GET {{baseUrl}}/api/admin/dashboard/stats
+Authorization: Bearer {{token}}
+
+### 3. Get Users List (với pagination)
+GET {{baseUrl}}/api/admin/users?page=0&size=10
+Authorization: Bearer {{token}}
+
+### 4. Get Users with Search
+GET {{baseUrl}}/api/admin/users?page=0&size=10&searchQuery=john
+Authorization: Bearer {{token}}
+
+### 5. Get Users with Role Filter
+GET {{baseUrl}}/api/admin/users?page=0&size=10&role=STUDENT
+Authorization: Bearer {{token}}
+
+### 6. Update User Status
+PUT {{baseUrl}}/api/admin/users/USER_ID_HERE/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "ACTIVE"
+}
+
+### 7. Get Projects List
+GET {{baseUrl}}/api/admin/projects?page=0&size=10
+Authorization: Bearer {{token}}
+
+### 8. Get Projects with Status Filter
+GET {{baseUrl}}/api/admin/projects?page=0&size=10&status=PENDING
+Authorization: Bearer {{token}}
+
+### 9. Get Projects with Search
+GET {{baseUrl}}/api/admin/projects?page=0&size=10&searchQuery=smart
+Authorization: Bearer {{token}}
+
+### 10. Approve Project
+POST {{baseUrl}}/api/admin/projects/PROJECT_ID_HERE/approve
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "approved": true,
+  "reason": "Project meets all requirements"
+}
+
+### 11. Reject Project
+POST {{baseUrl}}/api/admin/projects/PROJECT_ID_HERE/approve
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "approved": false,
+  "reason": "Does not meet quality standards"
+}
+
+### 12. Get Recent Activities
+GET {{baseUrl}}/api/admin/activities/recent?limit=10
+Authorization: Bearer {{token}}
+
+### 13. Get More Activities
+GET {{baseUrl}}/api/admin/activities/recent?limit=20
+Authorization: Bearer {{token}}
+
+### 14. Delete User
+DELETE {{baseUrl}}/api/admin/users/USER_ID_HERE
+Authorization: Bearer {{token}}
+
+### 15. Delete Project
+DELETE {{baseUrl}}/api/admin/projects/PROJECT_ID_HERE
+Authorization: Bearer {{token}}

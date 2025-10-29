@@ -60,7 +60,8 @@ public class MessageConst {
     public static final String MSG_EMAIL_NOT_FOUND = "No user found with the provided email.";
     public static final String MSG_ACCOUNT_ALREADY_VERIFIED = "Your account is already verified.";
     public static final String MSG_LOGIN_INVALID = "Invalid email/phone or password.";
-    public static final String MSG_ACCOUNT_INACTIVE = "Your account is not active. Please verify your email or contact support.";
+    public static final String MSG_ACCOUNT_INACTIVE = "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên để được hỗ trợ.";
+    public static final String MSG_ACCOUNT_SUSPENDED = "Tài khoản của bạn đã bị khóa vĩnh viễn do vi phạm nghiêm trọng. Vui lòng liên hệ quản trị viên để biết thêm chi tiết.";
     public static final String MSG_EMAIL_NOT_VERIFIED = "Your email is not verified. Please check your email to verify your account.";
     public static final String MSG_OTP_SENT = "OTP has been sent to your email.";
     public static final String MSG_OTP_INVALID = "OTP is incorrect.";

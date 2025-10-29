@@ -5,12 +5,12 @@ import com.connectexe.ConnectEXE.auth.service.LoginService;
 import com.connectexe.ConnectEXE.common.exception.AuthException;
 import com.connectexe.ConnectEXE.entity.User;
 import com.connectexe.ConnectEXE.repository.UserRepository;
+import com.connectexe.ConnectEXE.util.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
-import java.util.UUID;
 import com.connectexe.ConnectEXE.common.constant.MessageConst;
 
 /**
@@ -22,6 +22,7 @@ import com.connectexe.ConnectEXE.common.constant.MessageConst;
 public class LoginServiceImpl implements LoginService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * Authenticates the user login.
@@ -41,8 +42,12 @@ public class LoginServiceImpl implements LoginService {
         validatePassword(user, rawPassword, email);
         validateStatus(user, email);
             boolean verified = Boolean.TRUE.equals(user.getIsVerified());
-        // Generate a simple token (UUID) for now. In production replace with JWT or proper token generator.
-        String token = UUID.randomUUID().toString();
+        
+        // Generate JWT tokens
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getUserId(), user.getEmail(), user.getRole());
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getUserId());
+        
+        log.info("✅ JWT tokens generated for user: {}", user.getUserId());
 
     return LoginResponse.builder()
         .userId(user.getUserId())
@@ -50,7 +55,8 @@ public class LoginServiceImpl implements LoginService {
         .role(user.getRole())
         .isActive(Boolean.TRUE.equals(user.getIsActive()))
                 .isVerified(verified)
-        .token(token)
+        .accessToken(accessToken)
+        .refreshToken(refreshToken)
         .build();
     }
 
@@ -70,13 +76,34 @@ public class LoginServiceImpl implements LoginService {
 
     /**
      * Validates the user's account status.
+     * Checks both isActive flag and status field for comprehensive account status validation.
      *
      * @param user the user
-     * @param emailOrPhone the email or phone number
+     * @param email the email
      */
     private void validateStatus(User user, String email) {
+        // Check status field first (priority: SUSPENDED > INACTIVE > ACTIVE)
+        String status = user.getStatus();
+        if (status != null && !status.isEmpty()) {
+            switch (status.toUpperCase()) {
+                case "SUSPENDED":
+                    log.warn("❌ Suspended account login attempt for user: {}", email);
+                    throw new AuthException(MessageConst.MSG_ACCOUNT_SUSPENDED);
+                case "INACTIVE":
+                    log.warn("❌ Inactive account login attempt for user: {}", email);
+                    throw new AuthException(MessageConst.MSG_ACCOUNT_INACTIVE);
+                case "ACTIVE":
+                    // Account is active, allow login
+                    break;
+                default:
+                    log.warn("❌ Unknown status '{}' for user: {}", status, email);
+                    throw new AuthException(MessageConst.MSG_ACCOUNT_INACTIVE);
+            }
+        }
+        
+        // Fallback to isActive check if status is null/empty
         if (!Boolean.TRUE.equals(user.getIsActive())) {
-            log.warn("Inactive account for user: {}", email);
+            log.warn("❌ Inactive account (isActive=false) for user: {}", email);
             throw new AuthException(MessageConst.MSG_ACCOUNT_INACTIVE);
         }
     }

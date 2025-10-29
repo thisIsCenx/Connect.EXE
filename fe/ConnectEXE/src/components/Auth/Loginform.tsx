@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import { login } from '../../services/AuthService';
+import { saveToken, saveRefreshToken } from '../../utils/jwt';
 import type { LoginRequestDTO } from '../../types/request/AuthRequestDTO';
 import { GOOGLE_LOGIN_URL } from '../../constants/ApiConst';
 import { Regex } from '../../constants/Regex';
@@ -40,27 +42,62 @@ export default function LoginForm() {
 
     try {
       const data = await login(form);
-  const { userId, fullName, role, isVerified } = data;
+  const { userId, fullName, role, isVerified, accessToken, refreshToken, token } = data;
+  
+      console.log('🔍 Login response:', { userId, fullName, role, hasToken: !!(accessToken || token) });
 
       if (isVerified === false) {
         setError('Your email is not verified. Please check your email to verify your account.');
         return;
       }
-
+      
+      // Save remember me preference first
       if (rememberMe) {
-  localStorage.setItem(STORAGE_KEYS.REMEMBERED_EMAIL, form.email);
+        localStorage.setItem(STORAGE_KEYS.REMEMBERED_EMAIL, form.email);
         localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
       } else {
-  localStorage.removeItem(STORAGE_KEYS.REMEMBERED_EMAIL);
+        localStorage.removeItem(STORAGE_KEYS.REMEMBERED_EMAIL);
         localStorage.removeItem(STORAGE_KEYS.REMEMBER_ME);
+        // Clear any old session data
+        sessionStorage.clear();
+        // Remove cookies when not remembering (backend may have set them)
+        Cookies.remove('userId');
+        Cookies.remove('fullName');
+        Cookies.remove('role');
+        Cookies.remove('status');
+        Cookies.remove('isVerified');
+      }
+      
+      // Save JWT tokens with remember parameter
+      const jwtToken = accessToken || token;
+      if (jwtToken) {
+        saveToken(jwtToken, rememberMe);
+        console.log(`✅ JWT token saved to ${rememberMe ? 'localStorage' : 'sessionStorage'}`);
+        
+        if (refreshToken) {
+          saveRefreshToken(refreshToken, rememberMe);
+          console.log(`✅ Refresh token saved to ${rememberMe ? 'localStorage' : 'sessionStorage'}`);
+        }
+      } else {
+        console.warn('⚠️ No JWT token received from backend - using storage fallback');
       }
 
-  localStorage.setItem(STORAGE_KEYS.USER_ID, userId);
-      localStorage.setItem(STORAGE_KEYS.USER_NAME, fullName);
-      localStorage.setItem(STORAGE_KEYS.USER_ROLE, role);
+      // Save user info to appropriate storage
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem(STORAGE_KEYS.USER_ID, userId);
+      storage.setItem(STORAGE_KEYS.USER_NAME, fullName);
+      storage.setItem(STORAGE_KEYS.USER_ROLE, role);
+      
+      console.log(`✅ User info saved to ${rememberMe ? 'localStorage' : 'sessionStorage'}:`, {
+        userId: storage.getItem(STORAGE_KEYS.USER_ID),
+        fullName: storage.getItem(STORAGE_KEYS.USER_NAME),
+        role: storage.getItem(STORAGE_KEYS.USER_ROLE),
+        rememberMe: rememberMe
+      });
 
   // notify header to refresh auth state
   window.dispatchEvent(new Event('auth:changed'));
+  console.log('✅ Dispatched auth:changed event');
 
   switch (role) {
         case USER_ROLES.ADMIN:

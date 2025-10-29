@@ -542,7 +542,7 @@
   }
 }
 
-/* Forum Section - Blue Cards */
+/* Forum Section - Matching Vote Section Structure */
 .wix-forum-section {
   padding: 80px 20px;
   background: #000000;
@@ -550,90 +550,40 @@
   margin: 0 auto;
 }
 
-.wix-forum-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 30px;
-  margin-top: 40px;
-}
-
-.wix-forum-card {
-  background: linear-gradient(135deg, #3b82f6, #1e40af);
+.wix-forum-header {
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(10px);
   padding: 40px;
   border-radius: 20px;
-  color: #ffffff;
+  margin-bottom: 30px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wix-forum-subtitle {
+  font-size: 18px;
+  color: #cccccc;
+  margin-top: 10px;
+}
+
+.wix-forum-list {
   display: flex;
   flex-direction: column;
-  min-height: 300px;
+  gap: 20px;
+}
+
+.wix-forum-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
-  cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    transform: scale(0);
-    transition: transform 0.6s ease;
-  }
-  
-  &:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
-    background: linear-gradient(135deg, #4f9fff, #2563eb);
-    
-    &::before {
-      transform: scale(1);
-    }
-    
-    .wix-forum-cta {
-      transform: scale(1.05);
-      background: rgba(255, 255, 255, 0.3);
-    }
-  }
-}
-
-.wix-forum-title {
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 20px;
-  flex-grow: 1;
-}
-
-.wix-forum-meta {
-  margin-bottom: 20px;
-}
-
-.wix-forum-source {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 5px;
-}
-
-.wix-forum-date {
-  font-size: 14px;
-  opacity: 0.8;
-}
-
-.wix-forum-cta {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-weight: 600;
-  cursor: pointer;
-  align-self: flex-start;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   &::before {
     content: '';
@@ -642,17 +592,106 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s ease;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    transition: left 0.6s ease;
   }
   
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.05);
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
     
     &::before {
       left: 100%;
     }
+    
+    .wix-forum-button {
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+    }
+  }
+}
+
+.wix-forum-info {
+  flex: 1;
+}
+
+.wix-forum-item-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+
+.wix-forum-item-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wix-forum-source {
+  font-size: 16px;
+  color: #cccccc;
+  font-weight: 600;
+}
+
+.wix-forum-date {
+  font-size: 14px;
+  color: #888888;
+}
+
+.wix-forum-button {
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  padding: 12px 32px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 120px;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.15);
+    transition: left 0.3s ease;
+    z-index: 0;
+  }
+  
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.8);
+    transform: scale(1.05);
+    
+    &::before {
+      left: 0;
+    }
+  }
+  
+  span {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* Responsive for Forum Section */
+@media (max-width: 768px) {
+  .wix-forum-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+  
+  .wix-forum-item-title {
+    font-size: 20px;
   }
 }
 

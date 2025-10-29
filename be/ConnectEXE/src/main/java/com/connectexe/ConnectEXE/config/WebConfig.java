@@ -50,12 +50,12 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         logger.info("Configuring CORS mappings");
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedOrigins("http://localhost:3000", "http://localhost:5173")
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);
-        logger.debug("CORS mappings configured for all paths with origin: http://localhost:3000");
+        logger.debug("CORS mappings configured for all paths with origins: http://localhost:3000, http://localhost:5173");
     }
 
     @Override

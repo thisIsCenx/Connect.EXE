@@ -1,262 +1,336 @@
-import {
-  CalendarOutlined,
-  GiftOutlined,
-  LogoutOutlined,
-  TeamOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
-} from '@ant-design/icons';
-import { Card, Col, Layout, Menu, Row, Typography } from 'antd';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import { getDashboardStats, getRecentActivities } from '../../services/AdminService';
+import type { DashboardStatsResponseDTO, RecentActivityDTO } from '../../types/response/AdminResponseDTO';
 import './styles/AdminDashboard.scss';
 
-// Hàm decode giống trong Header.tsx
-function decodeCookieValue(value?: string) {
-  if (!value) return '';
-  return decodeURIComponent(value.replace(/\+/g, ' '));
+interface DashboardStats {
+  totalUsers: number;
+  totalProjects: number;
+  totalTopics: number;
+  totalReplies: number;
+  pendingProjects: number;
+  activeUsers: number;
+  projectsThisMonth: number;
+  topicsThisMonth: number;
 }
-
-
-const { Sider } = Layout;
-const { Title } = Typography;
-
-const PageContainer = styled(Layout)`
-  display: flex;
-`;
-
-const ContentWrapper = styled.div`
-  flex: 1;
-  position: relative;
-  overflow-x: hidden;
-`;
-
-const StyledContent = styled.div`
-  padding: 20px;
-  z-index: 0;
-  position: relative;
-  background-color: #fff;
-  min-height: 100vh;
-  width: 100%;
-`;
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // const [selectedKey, setSelectedKey] = useState<string>("dashboard");
-
-  // Map URL path to menu key
-  const pathToKey: { [key: string]: string } = {
-    user: 'user',
-    'movie-management': 'movie',
-    'theater-management': 'theater', // Bổ sung dòng này để fix lỗi sidebar
-    'employee-management': 'employee',
-    'promotion-management': 'promotion',
-    'tickets-management': 'ticket',
-    'showtime-management': 'schedule',
-    'cinema-room-management': 'room',
-    'concession-management': 'concession',
-  };
-  const selectedKey = pathToKey[location.pathname.split('/')[2]] || 'dashboard';
-
-  const [fullName, setFullName] = useState<string>('');
-  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
-  const logoutRef = useRef<HTMLDivElement>(null);
-  // const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
-  const [statistics, setStatistics] = useState<{
-    userCount: number;
-    promotionCount: number;
-    movieCount: number;
-    employeeCount: number;
-    scheduleCount: number;
-    ticketsSold?: number;
-    schedulesToday?: number;
-    activePromotions?: number;
-  }>({
-    userCount: 0,
-    promotionCount: 0,
-    movieCount: 0,
-    employeeCount: 0,
-    scheduleCount: 0,
-    ticketsSold: 0,
-    schedulesToday: 0,
-    activePromotions: 0,
+  const [user, setUser] = useState<{ fullName: string; role: string } | null>(null);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    totalProjects: 0,
+    totalTopics: 0,
+    totalReplies: 0,
+    pendingProjects: 0,
+    activeUsers: 0,
+    projectsThisMonth: 0,
+    topicsThisMonth: 0,
   });
+  const [activities, setActivities] = useState<RecentActivityDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const decodedName = decodeCookieValue(Cookies.get('fullName'));
-    if (decodedName) setFullName(decodedName);
+    // Check if user is admin - prioritize storage over cookies
+    const fullName = sessionStorage.getItem('userName') || 
+                     localStorage.getItem('userName') || 
+                     Cookies.get('fullName') || 
+                     'Admin';
+    
+    const role = sessionStorage.getItem('userRole') || 
+                 localStorage.getItem('userRole') || 
+                 Cookies.get('role') || 
+                 '';
+    
+    if (role.toUpperCase() !== 'ADMIN') {
+      navigate('/');
+      return;
+    }
 
-    // Đóng menu khi nhấp ra ngoài
-    const handleClickOutside = (event: MouseEvent) => {
-      if (logoutRef.current && !logoutRef.current.contains(event.target as Node) && isLogoutOpen) {
-        setIsLogoutOpen(false);
+    setUser({ fullName, role: role.toUpperCase() });
+
+    // Fetch dashboard data from API
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch statistics
+        const statsData = await getDashboardStats();
+        setStats(statsData);
+
+        // Fetch recent activities
+        const activitiesData = await getRecentActivities(4);
+        setActivities(activitiesData.activities);
+
+      } catch (err: any) {
+        console.error('Error fetching dashboard data:', err);
+        setError(err.response?.data?.message || 'Failed to load dashboard data');
+        
+        // Fallback to mock data if API fails
+        setStats({
+          totalUsers: 150,
+          totalProjects: 45,
+          totalTopics: 89,
+          totalReplies: 342,
+          pendingProjects: 12,
+          activeUsers: 78,
+          projectsThisMonth: 8,
+          topicsThisMonth: 23,
+        });
+        
+        setActivities([
+          {
+            activityId: '1',
+            type: 'USER_REGISTERED',
+            description: 'User registered (Fallback data)',
+            timestamp: new Date().toISOString(),
+          },
+          {
+            activityId: '2',
+            type: 'PROJECT_CREATED',
+            description: 'Project created (Fallback data)',
+            timestamp: new Date().toISOString(),
+          }
+        ]);
+      } finally {
+        setLoading(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isLogoutOpen]);
 
-  useEffect(() => {
-    axios.get("http://localhost:8080/api/admin/statistics")
-      .then(res => setStatistics(res.data))
-      .catch(err => console.error("Error fetching statistics:", err));
-  }, []);
+    fetchDashboardData();
+  }, [navigate]);
 
-  const handleLogout = async () => {
-    try {
-      await axios.post(
-        'http://localhost:8080/api/login/logout',
-        {},
-        {
-          withCredentials: true,
-        },
-      );
-      Cookies.remove('userId');
-      Cookies.remove('fullName');
-      Cookies.remove('role');
-      Cookies.remove('status');
-      navigate('/login');
-      setIsLogoutOpen(false);
-    } catch (error) {
-      console.error('Logout failed', error);
-    }
+  const handleLogout = () => {
+    Cookies.remove('userId');
+    Cookies.remove('fullName');
+    Cookies.remove('role');
+    Cookies.remove('status');
+    Cookies.remove('isVerified');
+    localStorage.clear();
+    sessionStorage.clear();
+    window.dispatchEvent(new Event('auth:changed'));
+    navigate('/login');
   };
 
-  const handleUserClick = () => {
-    console.log('User button clicked');
-    setIsLogoutOpen(!isLogoutOpen);
-  };
-
+  if (loading) {
+    return (
+      <div className="admin-dashboard">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Đang tải dữ liệu...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <PageContainer style={{ overflowY: 'hidden' }}>
-      <Sider width={230}>
-        <div className="logo">
-          <Link to="/admin">
-            <Title level={3} style={{ color: 'white', margin: 16 }}>
-              {'adminDashboard.title'}
-            </Title>
+    <div className="admin-dashboard">
+      {/* Sidebar */}
+      <aside className="admin-sidebar">
+        <div className="sidebar-header">
+          <Link to="/" className="logo-link">
+            <h2>Connect.EXE</h2>
+            <span className="admin-badge">Admin</span>
           </Link>
         </div>
-        <Menu theme="dark" mode="inline" selectedKeys={[selectedKey]}>
-          <Menu.Item key="user" icon={<UserOutlined />}>
-            <Link to="/admin/user">{'adminDashboard.userProfile'}</Link>
-          </Menu.Item>
-        </Menu>
-        <div
-          className="user-info-btn"
-          onClick={handleUserClick}
-          style={{
-            position: 'absolute',
-            bottom: 24,
-            left: 24,
-            margin: 0,
-            background: 'none',
-            borderRadius: 0,
-            boxShadow: 'none',
-            padding: 0,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <UserOutlined style={{ color: '#fff', fontSize: 18 }} />
-        </div>
-      </Sider>
 
-      <ContentWrapper>
-        <div className="admin-lang-switcher">
-        </div>
-        <StyledContent>
-          {selectedKey === 'dashboard' ? (
-            <>
-              <Title level={2} style={{ marginBottom: 32 }}>{'adminDashboard.welcome'}</Title>
-              {/* Sử dụng Ant Design Card + Row/Col */}
-              <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
-                <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-                  <Card bordered hoverable>
-                    <UserOutlined style={{ fontSize: 32, color: "#1890ff" }} />
-                    <div style={{ marginTop: 8, color: '#888' }}>Tổng số người dùng</div>
-                    <div style={{ fontSize: 28, fontWeight: 700 }}>{statistics.userCount}</div>
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-                  <Card bordered hoverable>
-                    <TeamOutlined style={{ fontSize: 32, color: "#52c41a" }} />
-                    <div style={{ marginTop: 8, color: '#888' }}>Nhân viên</div>
-                    <div style={{ fontSize: 28, fontWeight: 700 }}>{statistics.employeeCount}</div>
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-                  <Card bordered hoverable>
-                    <VideoCameraOutlined style={{ fontSize: 32, color: "#faad14" }} />
-                    <div style={{ marginTop: 8, color: '#888' }}>Phim</div>
-                    <div style={{ fontSize: 28, fontWeight: 700 }}>{statistics.movieCount}</div>
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-                  <Card bordered hoverable>
-                    <CalendarOutlined style={{ fontSize: 32, color: "#722ed1" }} />
-                    <div style={{ marginTop: 8, color: '#888' }}>Lịch chiếu</div>
-                    <div style={{ fontSize: 28, fontWeight: 700 }}>{statistics.scheduleCount}</div>
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-                  <Card bordered hoverable>
-                    <GiftOutlined style={{ fontSize: 32, color: "#eb2f96" }} />
-                    <div style={{ marginTop: 8, color: '#888' }}>Khuyến mãi</div>
-                    <div style={{ fontSize: 28, fontWeight: 700 }}>{statistics.promotionCount}</div>
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-                  <Card bordered hoverable>
-                    <GiftOutlined style={{ fontSize: 32, color: "#13c2c2" }} />
-                    <div style={{ marginTop: 8, color: '#888' }}>Khuyến mãi đang hoạt động</div>
-                    <div style={{ fontSize: 28, fontWeight: 700 }}>{statistics.activePromotions}</div>
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-                  <Card bordered hoverable>
-                    <VideoCameraOutlined style={{ fontSize: 32, color: "#f5222d" }} />
-                    <div style={{ marginTop: 8, color: '#888' }}>Vé đã bán</div>
-                    <div style={{ fontSize: 28, fontWeight: 700 }}>{statistics.ticketsSold}</div>
-                  </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6} xl={6}>
-                  <Card bordered hoverable>
-                    <CalendarOutlined style={{ fontSize: 32, color: "#fa8c16" }} />
-                    <div style={{ marginTop: 8, color: '#888' }}>Suất chiếu hôm nay</div>
-                    <div style={{ fontSize: 28, fontWeight: 700 }}>{statistics.schedulesToday}</div>
-                  </Card>
-                </Col>
-              </Row>
-              {/* Đã xóa hình banner */}
-            </>
-          ) : (
-            <Outlet />
-          )}
-        </StyledContent>
-      </ContentWrapper>
+        <nav className="sidebar-nav">
+          <div className="nav-section">
+            <h3>Tổng quan</h3>
+            <Link to="/admin" className="nav-item active">
+              <span className="icon">📊</span>
+              <span>Dashboard</span>
+            </Link>
+          </div>
 
-      {/* Icon và tên người dùng cố định */}
-      <div className="user-info-btn" onClick={handleUserClick}>
-        <UserOutlined />
-        <span className="user-name-display">{fullName || 'Admin'}</span>
-      </div>
-      {isLogoutOpen && (
-        <div className="user-logout-menu" ref={logoutRef}>
+          <div className="nav-section">
+            <h3>Quản lý</h3>
+            <Link to="/admin/users" className="nav-item">
+              <span className="icon">👥</span>
+              <span>Người dùng</span>
+            </Link>
+            <Link to="/admin/projects" className="nav-item">
+              <span className="icon">📁</span>
+              <span>Dự án</span>
+            </Link>
+            <Link to="/admin/forum" className="nav-item">
+              <span className="icon">💬</span>
+              <span>Diễn đàn</span>
+            </Link>
+            <Link to="/admin/reports" className="nav-item">
+              <span className="icon">⚠️</span>
+              <span>Báo cáo</span>
+            </Link>
+          </div>
+
+          <div className="nav-section">
+            <h3>Cài đặt</h3>
+            <Link to="/admin/settings" className="nav-item">
+              <span className="icon">⚙️</span>
+              <span>Cấu hình</span>
+            </Link>
+          </div>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="user-info">
+            <div className="user-avatar">{user?.fullName.charAt(0)}</div>
+            <div className="user-details">
+              <p className="user-name">{user?.fullName}</p>
+              <p className="user-role">{user?.role}</p>
+            </div>
+          </div>
           <button className="logout-btn" onClick={handleLogout}>
-            <LogoutOutlined /> {'adminDashboard.logout'}
+            <span className="icon">🚪</span>
+            Đăng xuất
           </button>
         </div>
-      )}
-    </PageContainer>
+      </aside>
+
+      {/* Main Content */}
+      <main className="admin-main">
+        <header className="admin-header">
+          <h1>Dashboard</h1>
+          <p className="subtitle">Chào mừng trở lại, {user?.fullName}!</p>
+        </header>
+
+        {/* Statistics Cards */}
+        <div className="stats-grid">
+          <div className="stat-card primary">
+            <div className="stat-icon">👥</div>
+            <div className="stat-content">
+              <p className="stat-label">Tổng người dùng</p>
+              <h3 className="stat-value">{stats.totalUsers}</h3>
+              <p className="stat-change positive">+{stats.activeUsers} hoạt động</p>
+            </div>
+          </div>
+
+          <div className="stat-card success">
+            <div className="stat-icon">📁</div>
+            <div className="stat-content">
+              <p className="stat-label">Dự án</p>
+              <h3 className="stat-value">{stats.totalProjects}</h3>
+              <p className="stat-change">+{stats.projectsThisMonth} tháng này</p>
+            </div>
+          </div>
+
+          <div className="stat-card warning">
+            <div className="stat-icon">⏳</div>
+            <div className="stat-content">
+              <p className="stat-label">Dự án chờ duyệt</p>
+              <h3 className="stat-value">{stats.pendingProjects}</h3>
+              <p className="stat-change">Cần xem xét</p>
+            </div>
+          </div>
+
+          <div className="stat-card info">
+            <div className="stat-icon">💬</div>
+            <div className="stat-content">
+              <p className="stat-label">Chủ đề diễn đàn</p>
+              <h3 className="stat-value">{stats.totalTopics}</h3>
+              <p className="stat-change">+{stats.topicsThisMonth} tháng này</p>
+            </div>
+          </div>
+
+          <div className="stat-card secondary">
+            <div className="stat-icon">💭</div>
+            <div className="stat-content">
+              <p className="stat-label">Tổng phản hồi</p>
+              <h3 className="stat-value">{stats.totalReplies}</h3>
+              <p className="stat-change">Trên diễn đàn</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <section className="quick-actions">
+          <h2>Thao tác nhanh</h2>
+          <div className="actions-grid">
+            <Link to="/admin/users" className="action-card">
+              <span className="action-icon">➕</span>
+              <h3>Thêm người dùng</h3>
+              <p>Tạo tài khoản mới</p>
+            </Link>
+            <Link to="/admin/projects?status=pending" className="action-card">
+              <span className="action-icon">✅</span>
+              <h3>Duyệt dự án</h3>
+              <p>{stats.pendingProjects} dự án chờ</p>
+            </Link>
+            <Link to="/admin/reports" className="action-card">
+              <span className="action-icon">📊</span>
+              <h3>Xem báo cáo</h3>
+              <p>Báo cáo vi phạm</p>
+            </Link>
+            <Link to="/admin/settings" className="action-card">
+              <span className="action-icon">⚙️</span>
+              <h3>Cấu hình</h3>
+              <p>Cài đặt hệ thống</p>
+            </Link>
+          </div>
+        </section>
+
+        {/* Recent Activity */}
+        <section className="recent-activity">
+          <h2>Hoạt động gần đây</h2>
+          {error && (
+            <div className="error-message">
+              <p>⚠️ {error}</p>
+              <p style={{fontSize: '12px', marginTop: '4px'}}>Đang sử dụng dữ liệu mẫu</p>
+            </div>
+          )}
+          <div className="activity-list">
+            {activities.length > 0 ? (
+              activities.map((activity) => {
+                const getActivityIcon = (type: string) => {
+                  switch (type) {
+                    case 'USER_REGISTERED': return { icon: '👤', className: 'user' };
+                    case 'PROJECT_CREATED': return { icon: '🆕', className: 'new' };
+                    case 'PROJECT_APPROVED': return { icon: '✅', className: 'approve' };
+                    case 'TOPIC_CREATED': return { icon: '💬', className: 'forum' };
+                    default: return { icon: '📝', className: 'new' };
+                  }
+                };
+
+                const { icon, className } = getActivityIcon(activity.type);
+                const timeAgo = getTimeAgo(activity.timestamp);
+
+                return (
+                  <div key={activity.activityId} className="activity-item">
+                    <div className={`activity-icon ${className}`}>{icon}</div>
+                    <div className="activity-content">
+                      <p className="activity-text">{activity.description}</p>
+                      <p className="activity-time">{timeAgo}</p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="no-activities">Không có hoạt động nào gần đây</p>
+            )}
+          </div>
+        </section>
+      </main>
+    </div>
   );
+};
+
+// Helper function to format time ago
+const getTimeAgo = (timestamp: string): string => {
+  const now = new Date();
+  const time = new Date(timestamp);
+  const diffMs = now.getTime() - time.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Vừa xong';
+  if (diffMins < 60) return `${diffMins} phút trước`;
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+  return `${diffDays} ngày trước`;
 };
 
 export default AdminDashboard;
