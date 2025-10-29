@@ -67,6 +67,7 @@ public class ForumServiceImpl implements ForumService {
         topic.setTitle(request.getTitle());
         topic.setContent(request.getContent());
         topic.setUserId(userId);
+        topic.setImageUrls(request.getImageUrls()); // Set image URLs from request
         topic.setApproved(false); // Default to false, awaiting approval
         topic.setCreatedAt(LocalDateTime.now());
         topic.setUpdatedAt(LocalDateTime.now());
@@ -100,6 +101,7 @@ public class ForumServiceImpl implements ForumService {
                 .authorName(authorName)
                 .content(topic.getContent())
                 .approved(topic.getApproved())
+                .imageUrls(topic.getImageUrls())
                 .createdAt(topic.getCreatedAt())
                 .updatedAt(topic.getUpdatedAt())
                 .replies(replyResponses)
@@ -135,6 +137,7 @@ public class ForumServiceImpl implements ForumService {
         reply.setUserId(userId);
         reply.setContent(request.getContent());
         reply.setParentReplyId(request.getParentReplyId()); // Set parent reply ID
+        reply.setImageUrls(request.getImageUrls()); // Set image URLs from request
         reply.setCreatedAt(LocalDateTime.now());
         
         ForumReply savedReply = replyRepository.save(reply);
@@ -169,6 +172,7 @@ public class ForumServiceImpl implements ForumService {
                 .authorName(authorName)
                 .content(topic.getContent())
                 .approved(topic.getApproved())
+                .imageUrls(topic.getImageUrls())
                 .createdAt(topic.getCreatedAt())
                 .updatedAt(topic.getUpdatedAt())
                 .replyCount(replyCount != null ? replyCount.intValue() : 0)
@@ -184,6 +188,7 @@ public class ForumServiceImpl implements ForumService {
                 .userId(reply.getUserId())
                 .authorName(authorName)
                 .content(reply.getContent())
+                .imageUrls(reply.getImageUrls())
                 .createdAt(reply.getCreatedAt())
                 .parentReplyId(reply.getParentReplyId())
                 .build();
@@ -209,6 +214,7 @@ public class ForumServiceImpl implements ForumService {
                 .userId(reply.getUserId())
                 .authorName(authorName)
                 .content(reply.getContent())
+                .imageUrls(reply.getImageUrls())
                 .createdAt(reply.getCreatedAt())
                 .parentReplyId(reply.getParentReplyId())
                 .children(children)

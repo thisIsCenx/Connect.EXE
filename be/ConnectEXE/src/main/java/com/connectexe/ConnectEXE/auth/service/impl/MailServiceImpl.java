@@ -40,12 +40,12 @@ public class MailServiceImpl implements MailService {
             String messageNote;
 
             if ("forgot".equalsIgnoreCase(type)) {
-                subject = "Reset Your Password - MovieTheater";
+                subject = "Reset Your Password - Connect.EXE";
                 messageTitle = "Password Reset Request";
                 messageNote = "Use this code to reset your password.";
             } else {
-                subject = "Verify Your MovieTheater Account";
-                messageTitle = "Welcome to MovieTheater!";
+                subject = "Verify Your Connect.EXE Account";
+                messageTitle = "Welcome to Connect.EXE!";
                 messageNote = "Please enter this code to activate your account.";
             }
 

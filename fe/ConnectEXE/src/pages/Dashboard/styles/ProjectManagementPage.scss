@@ -1,0 +1,199 @@
+// ProjectManagementPage styles
+@import './AdminDashboard.scss';
+
+.projects-table {
+  .project-info {
+    strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #1e293b;
+    }
+
+    .project-desc {
+      font-size: 12px;
+      color: #64748b;
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    &.approved {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    &.rejected {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+
+    button {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.2s ease;
+
+      &.approve-btn {
+        background: #d1fae5;
+
+        &:hover {
+          background: #a7f3d0;
+          transform: scale(1.1);
+        }
+      }
+
+      &.reject-btn {
+        background: #fee2e2;
+
+        &:hover {
+          background: #fecaca;
+          transform: scale(1.1);
+        }
+      }
+
+      &.delete-btn {
+        background: #ffe4e6;
+
+        &:hover {
+          background: #fecdd3;
+          transform: scale(1.1);
+        }
+      }
+    }
+  }
+}
+
+// Modal styles
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+
+  h2 {
+    margin: 0 0 20px 0;
+    color: #1e293b;
+    font-size: 24px;
+  }
+
+  p {
+    margin: 8px 0;
+    color: #64748b;
+    font-size: 14px;
+
+    strong {
+      color: #1e293b;
+    }
+  }
+
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    margin: 16px 0;
+    resize: vertical;
+    transition: all 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #8b5cf6;
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+
+    button {
+      flex: 1;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &.approve-btn-modal {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+      }
+
+      &.cancel-btn {
+        background: #f1f5f9;
+        color: #64748b;
+
+        &:hover {
+          background: #e2e8f0;
+        }
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

@@ -114,8 +114,8 @@ const Home: React.FC = () => {
         <Header breadcrumbs={[]} />
 
         <main className="wix-main">
-          {/* ID DUY NHẤT: Thuộc nhóm "Khám phá dự án" */}
-          <section id="kham-pha-du-an-hero" className="wix-hero">
+          {/* Hero Banner - Không thuộc nhóm nào cụ thể */}
+          <section id="hero-banner" className="wix-hero">
             <div className="wix-hero-content">
               <h1 className="wix-hero-title">Khám phá dự án khởi nghiệp tiêu biểu 2025</h1>
               <button className="wix-cta-button">Khám phá ngay</button>
@@ -194,8 +194,8 @@ const Home: React.FC = () => {
             </div>
           </section>
 
-          {/* ID DUY NHẤT: Thuộc nhóm "Tin tức" */}
-          <section id="tin-tuc-partners" className="wix-partners-section">
+          {/* ID DUY NHẤT: Thuộc nhóm "Khám phá dự án" */}
+          <section id="kham-pha-du-an-partners" className="wix-partners-section">
             <div className="wix-partners-header">
               <span className="wix-partners-label">Nhà khởi nghiệp</span>
               <h2 className="wix-section-title">STARTUP PARTNER</h2>
@@ -230,16 +230,21 @@ const Home: React.FC = () => {
 
           {/* ID DUY NHẤT: Thuộc nhóm "Diễn đàn" */}
           <section id="dien-dan" className="wix-forum-section">
-            <h2 className="wix-section-title">Diễn đàn thảo luận</h2>
-            <div className="wix-forum-grid">
+            <div className="wix-forum-header">
+              <h2 className="wix-section-title">Diễn đàn thảo luận</h2>
+              <p className="wix-forum-subtitle">Khám phá các bài viết và thảo luận từ cộng đồng</p>
+            </div>
+            <div className="wix-forum-list">
               {forumArticles.map((article) => (
-                <div key={article.id} className="wix-forum-card reveal">
-                  <h3 className="wix-forum-title">{article.title}</h3>
-                  <div className="wix-forum-meta">
-                    <span className="wix-forum-source">{article.source}</span>
-                    <span className="wix-forum-date">{article.date}</span>
+                <div key={article.id} className="wix-forum-item reveal">
+                  <div className="wix-forum-info">
+                    <h3 className="wix-forum-item-title">{article.title}</h3>
+                    <div className="wix-forum-item-meta">
+                      <span className="wix-forum-source">{article.source}</span>
+                      <span className="wix-forum-date">{article.date}</span>
+                    </div>
                   </div>
-                  <button className="wix-forum-cta">READ ARTICLE</button>
+                  <button className="wix-forum-button"><span>READ</span></button>
                 </div>
               ))}
             </div>

@@ -17,6 +17,7 @@ public class ReplyResponse {
     private String userId;
     private String authorName;
     private String content;
+    private List<String> imageUrls;
     private LocalDateTime createdAt;
     private String parentReplyId; // ID of parent reply (null for root replies)
     private List<ReplyResponse> children; // Nested replies

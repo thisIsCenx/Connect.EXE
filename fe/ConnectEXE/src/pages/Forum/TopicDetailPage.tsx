@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getTopicDetail, approveTopic, deleteTopic } from '../../services/ForumService';
 import type { TopicDetailResponse, ReplyResponse } from '../../types/response/ForumResponseDTO';
 import { ForumReply, CreateReplyForm } from '../../components/Forum';
+import Header from '../../components/Home/Header';
 import './styles/TopicDetailPage.scss';
 
 const TopicDetailPage: React.FC = () => {
@@ -145,25 +146,33 @@ const TopicDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="topic-detail-page">
-        <div className="loading">Đang tải...</div>
-      </div>
+      <>
+        <Header breadcrumbs={[]} />
+        <div className="topic-detail-page">
+          <div className="loading">Đang tải...</div>
+        </div>
+      </>
     );
   }
 
   if (error || !topic) {
     return (
-      <div className="topic-detail-page">
-        <div className="error-message">{error || 'Không tìm thấy chủ đề'}</div>
-        <button onClick={() => navigate('/forum')} className="btn-back">
-          Quay lại danh sách
-        </button>
-      </div>
+      <>
+        <Header breadcrumbs={[]} />
+        <div className="topic-detail-page">
+          <div className="error-message">{error || 'Không tìm thấy chủ đề'}</div>
+          <button onClick={() => navigate('/forum')} className="btn-back">
+            Quay lại danh sách
+          </button>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="topic-detail-page">
+    <>
+      <Header breadcrumbs={[]} />
+      <div className="topic-detail-page">
       <button onClick={() => navigate('/forum')} className="btn-back">
         ← Quay lại
       </button>
@@ -219,6 +228,16 @@ const TopicDetailPage: React.FC = () => {
           {topic.content}
         </div>
 
+        {topic.imageUrls && topic.imageUrls.length > 0 && (
+          <div className="topic-images">
+            {topic.imageUrls.map((imageUrl, index) => (
+              <div key={index} className="image-item">
+                <img src={imageUrl} alt={`Image ${index + 1}`} />
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="replies-section">
           <h2>Phản hồi ({topic.replies.length})</h2>
           
@@ -259,7 +278,8 @@ const TopicDetailPage: React.FC = () => {
           />
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

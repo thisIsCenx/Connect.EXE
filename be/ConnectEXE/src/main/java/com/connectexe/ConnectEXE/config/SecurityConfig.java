@@ -170,6 +170,12 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.GET, RouteConst.OAUTH2_SUCCESS).permitAll()
                         // Public read endpoints for the platform
                         .requestMatchers(HttpMethod.GET, RouteConst.PROJECTS, RouteConst.PROJECTS + "/**").permitAll()
+                        // New Project API endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/projects", "/api/projects/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/projects").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/projects/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/projects/*/vote").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/projects/*/vote").authenticated()
                         .requestMatchers(HttpMethod.GET, RouteConst.SKILLS).permitAll()
                         .requestMatchers(HttpMethod.GET, RouteConst.MATERIALS + "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, RouteConst.NEWS + "/**").permitAll()

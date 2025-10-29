@@ -26,6 +26,13 @@ public class ForumReply {
     // Parent reply for nested comments (null if it's a root reply)
     @Column(name = "parent_reply_id", length = 12)
     private String parentReplyId;
+    
+    /**
+     * Image URLs from Cloudinary stored as TEXT array in PostgreSQL
+     * Format: {"url1", "url2", "url3"}
+     */
+    @Column(name = "image_urls", columnDefinition = "TEXT[]")
+    private List<String> imageUrls;
 
     // Self-referencing relationship for nested replies
     @ManyToOne(fetch = FetchType.LAZY)

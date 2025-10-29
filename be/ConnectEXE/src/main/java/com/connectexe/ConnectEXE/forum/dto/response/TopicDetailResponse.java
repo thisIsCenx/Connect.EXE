@@ -18,6 +18,7 @@ public class TopicDetailResponse {
     private String authorName;
     private String content;
     private Boolean approved;
+    private List<String> imageUrls;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<ReplyResponse> replies;

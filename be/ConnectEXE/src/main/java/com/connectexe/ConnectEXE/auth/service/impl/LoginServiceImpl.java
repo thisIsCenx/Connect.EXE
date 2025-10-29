@@ -76,13 +76,34 @@ public class LoginServiceImpl implements LoginService {
 
     /**
      * Validates the user's account status.
+     * Checks both isActive flag and status field for comprehensive account status validation.
      *
      * @param user the user
-     * @param emailOrPhone the email or phone number
+     * @param email the email
      */
     private void validateStatus(User user, String email) {
+        // Check status field first (priority: SUSPENDED > INACTIVE > ACTIVE)
+        String status = user.getStatus();
+        if (status != null && !status.isEmpty()) {
+            switch (status.toUpperCase()) {
+                case "SUSPENDED":
+                    log.warn("❌ Suspended account login attempt for user: {}", email);
+                    throw new AuthException(MessageConst.MSG_ACCOUNT_SUSPENDED);
+                case "INACTIVE":
+                    log.warn("❌ Inactive account login attempt for user: {}", email);
+                    throw new AuthException(MessageConst.MSG_ACCOUNT_INACTIVE);
+                case "ACTIVE":
+                    // Account is active, allow login
+                    break;
+                default:
+                    log.warn("❌ Unknown status '{}' for user: {}", status, email);
+                    throw new AuthException(MessageConst.MSG_ACCOUNT_INACTIVE);
+            }
+        }
+        
+        // Fallback to isActive check if status is null/empty
         if (!Boolean.TRUE.equals(user.getIsActive())) {
-            log.warn("Inactive account for user: {}", email);
+            log.warn("❌ Inactive account (isActive=false) for user: {}", email);
             throw new AuthException(MessageConst.MSG_ACCOUNT_INACTIVE);
         }
     }

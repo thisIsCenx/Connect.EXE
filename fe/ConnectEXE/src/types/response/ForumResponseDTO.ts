@@ -9,6 +9,7 @@ export interface TopicResponse {
   createdAt: string;
   updatedAt: string;
   replyCount: number;
+  imageUrls?: string[];
 }
 
 export interface TopicDetailResponse {
@@ -21,6 +22,7 @@ export interface TopicDetailResponse {
   createdAt: string;
   updatedAt: string;
   replies: ReplyResponse[];
+  imageUrls?: string[];
 }
 
 export interface ReplyResponse {
@@ -33,6 +35,7 @@ export interface ReplyResponse {
   parentReplyId?: string; // ID of parent reply (null/undefined for root replies)
   children?: ReplyResponse[]; // Nested replies
   replyCount?: number; // Count of child replies
+  imageUrls?: string[];
 }
 
 export interface ApiResponse<T> {

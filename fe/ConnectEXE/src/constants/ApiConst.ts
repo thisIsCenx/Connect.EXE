@@ -17,6 +17,14 @@ export const MEMBER_LIST_ENDPOINT = '/api/admin/users';
 export const UPDATE_USER_ENDPOINT = '/api/admin/users';
 export const GOOGLE_LOGIN_URL = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google`;
 
+// Admin Dashboard endpoints
+export const ADMIN_STATS_ENDPOINT = '/api/admin/dashboard/stats';
+export const ADMIN_USERS_ENDPOINT = '/api/admin/users';
+export const ADMIN_USER_STATUS_ENDPOINT = (userId: string) => `/api/admin/users/${userId}/status`;
+export const ADMIN_PROJECTS_ENDPOINT = '/api/admin/projects';
+export const ADMIN_PROJECT_APPROVE_ENDPOINT = (projectId: string) => `/api/admin/projects/${projectId}/approve`;
+export const ADMIN_RECENT_ACTIVITIES_ENDPOINT = '/api/admin/activities/recent';
+
 // Forum endpoints
 export const FORUM_TOPICS_ENDPOINT = '/forum/topics';
 export const FORUM_TOPIC_DETAIL_ENDPOINT = (topicId: string) => `/forum/topics/${topicId}`;

@@ -1,9 +1,9 @@
 .create-reply-form {
-  background: white;
+  background: rgba(30, 41, 59, 0.4);
   border-radius: 8px;
   padding: 20px;
   margin-top: 24px;
-  border: 1px solid #e4e6eb;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
 
   &.nested {
@@ -18,7 +18,7 @@
   h3 {
     margin-top: 0;
     margin-bottom: 16px;
-    color: #1c1e21;
+    color: #ffffff;
     font-size: 1.1rem;
     font-weight: 600;
 
@@ -35,19 +35,22 @@
     textarea {
       width: 100%;
       padding: 12px;
-      border: 1px solid #ccd0d5;
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 20px;
       font-size: 15px;
       font-family: inherit;
       resize: vertical;
       min-height: 80px;
       transition: all 0.2s ease;
-      background: #f0f2f5;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      color: #ffffff;
 
       &:focus {
         outline: none;
-        border-color: #385898;
-        background: white;
+        border-color: rgba(236, 72, 153, 0.5);
+        background: rgba(0, 0, 0, 0.4);
+        color: #ffffff;
       }
 
       &.error {
@@ -55,12 +58,13 @@
       }
 
       &:disabled {
-        background-color: #e9ecef;
+        background-color: rgba(0, 0, 0, 0.2);
         cursor: not-allowed;
+        color: rgba(255, 255, 255, 0.5);
       }
 
       &::placeholder {
-        color: #8a8d91;
+        color: rgba(255, 255, 255, 0.5);
       }
     }
 
@@ -145,6 +149,7 @@
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);

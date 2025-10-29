@@ -4,6 +4,7 @@ import { getTopics, approveTopic, deleteTopic, restoreTopic } from '../../servic
 import { getUserFromToken } from '../../utils/jwt';
 import type { TopicResponse } from '../../types/response/ForumResponseDTO';
 import { ForumTopicCard, CreateTopicForm } from '../../components/Forum';
+import Header from '../../components/Home/Header';
 import './styles/ForumListPage.scss';
 
 const ForumListPage: React.FC = () => {
@@ -169,9 +170,11 @@ const ForumListPage: React.FC = () => {
   ];
 
   return (
-    <div className="forum-page">
-      {/* Left Sidebar */}
-      <aside className="forum-sidebar">
+    <>
+      <Header breadcrumbs={[]} />
+      <div className="forum-page">
+        {/* Left Sidebar */}
+        <aside className="forum-sidebar">
         <div className="sidebar-content">
           {categories.map((category) => (
             <div key={category.id} className="category-section">
@@ -322,6 +325,7 @@ const ForumListPage: React.FC = () => {
         </div>
       </aside>
     </div>
+    </>
   );
 };
 

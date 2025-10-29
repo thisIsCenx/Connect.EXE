@@ -3,6 +3,7 @@ package com.connectexe.ConnectEXE.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "forum_topics")
@@ -26,6 +27,13 @@ public class ForumTopic {
 
     @Column(name = "is_active")
     private Boolean isActive = true;
+    
+    /**
+     * Image URLs from Cloudinary stored as TEXT array in PostgreSQL
+     * Format: {"url1", "url2", "url3"}
+     */
+    @Column(name = "image_urls", columnDefinition = "TEXT[]")
+    private List<String> imageUrls;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

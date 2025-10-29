@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { createTopic } from '../../services/ForumService';
+import { uploadImage, deleteImage, validateImageFile } from '../../services/ImageUploadService';
 import { isAuthenticated } from '../../utils/jwt';
 import type { CreateTopicRequest } from '../../types/request/ForumRequestDTO';
 import './styles/CreateTopicForm.scss';
@@ -9,17 +10,28 @@ interface CreateTopicFormProps {
   onCancel?: () => void;
 }
 
+interface UploadedImage {
+  url: string;
+  publicId: string;
+  file: File;
+  preview: string;
+}
+
 const CreateTopicForm: React.FC<CreateTopicFormProps> = ({ onSuccess, onCancel }) => {
   const [formData, setFormData] = useState<CreateTopicRequest>({
     title: '',
     content: '',
+    imageUrls: [],
   });
-  const [errors, setErrors] = useState<{ title?: string; content?: string }>({});
+  const [errors, setErrors] = useState<{ title?: string; content?: string; images?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateForm = (): boolean => {
-    const newErrors: { title?: string; content?: string } = {};
+    const newErrors: { title?: string; content?: string; images?: string } = {};
 
     if (!formData.title.trim()) {
       newErrors.title = 'Tiêu đề không được để trống';
@@ -31,8 +43,104 @@ const CreateTopicForm: React.FC<CreateTopicFormProps> = ({ onSuccess, onCancel }
       newErrors.content = 'Nội dung không được để trống';
     }
 
+    if (uploadedImages.length > 5) {
+      newErrors.images = 'Tối đa 5 ảnh';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Check total images limit
+    if (uploadedImages.length + files.length > 5) {
+      setErrors({ ...errors, images: 'Tối đa 5 ảnh' });
+      return;
+    }
+
+    setIsUploading(true);
+    setErrors({ ...errors, images: undefined });
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      // Validate file
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        setErrors({ ...errors, images: validation.error });
+        continue;
+      }
+
+      try {
+        // Create preview
+        const preview = URL.createObjectURL(file);
+
+        // Upload to Cloudinary
+        console.log('📤 Uploading image:', file.name);
+        const uploadResult = await uploadImage(file, 'forum/topics');
+        console.log('✅ Image uploaded:', uploadResult.url);
+
+        // Add to uploaded images
+        const newImage: UploadedImage = {
+          url: uploadResult.url,
+          publicId: uploadResult.publicId,
+          file,
+          preview,
+        };
+
+        setUploadedImages((prev) => [...prev, newImage]);
+        setFormData((prev) => ({
+          ...prev,
+          imageUrls: [...(prev.imageUrls || []), uploadResult.url],
+        }));
+      } catch (error: any) {
+        console.error('❌ Upload failed:', error);
+        setErrors({ 
+          ...errors, 
+          images: error.response?.data?.message || 'Lỗi khi upload ảnh' 
+        });
+      }
+    }
+
+    setIsUploading(false);
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveImage = async (index: number) => {
+    const image = uploadedImages[index];
+
+    try {
+      // Delete from Cloudinary
+      console.log('🗑️ Deleting image:', image.publicId);
+      await deleteImage(image.publicId);
+      console.log('✅ Image deleted');
+
+      // Revoke preview URL
+      URL.revokeObjectURL(image.preview);
+
+      // Remove from state
+      setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+      setFormData((prev) => ({
+        ...prev,
+        imageUrls: prev.imageUrls?.filter((_, i) => i !== index),
+      }));
+    } catch (error) {
+      console.error('❌ Delete failed:', error);
+      // Still remove from UI even if delete fails
+      URL.revokeObjectURL(image.preview);
+      setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+      setFormData((prev) => ({
+        ...prev,
+        imageUrls: prev.imageUrls?.filter((_, i) => i !== index),
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,8 +182,12 @@ const CreateTopicForm: React.FC<CreateTopicFormProps> = ({ onSuccess, onCancel }
       console.log('✅ Topic created:', response);
       setSubmitMessage(response.message || 'Chủ đề đã được tạo thành công, chờ duyệt!');
       
+      // Clean up preview URLs
+      uploadedImages.forEach((img) => URL.revokeObjectURL(img.preview));
+      
       // Reset form
-      setFormData({ title: '', content: '' });
+      setFormData({ title: '', content: '', imageUrls: [] });
+      setUploadedImages([]);
       
       // Call success callback after a short delay
       setTimeout(() => {
@@ -139,6 +251,55 @@ const CreateTopicForm: React.FC<CreateTopicFormProps> = ({ onSuccess, onCancel }
             disabled={isSubmitting}
           />
           {errors.content && <span className="error-message">{errors.content}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="images">
+            Hình ảnh (Tối đa 5 ảnh)
+          </label>
+          <div className="image-upload-container">
+            <input
+              ref={fileInputRef}
+              type="file"
+              id="images"
+              accept="image/*"
+              multiple
+              onChange={handleImageSelect}
+              disabled={isSubmitting || isUploading || uploadedImages.length >= 5}
+              style={{ display: 'none' }}
+            />
+            <button
+              type="button"
+              className="btn-upload-image"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isSubmitting || isUploading || uploadedImages.length >= 5}
+            >
+              {isUploading ? '⏳ Đang upload...' : '📷 Thêm ảnh'}
+            </button>
+            <span className="image-count">
+              {uploadedImages.length}/5 ảnh
+            </span>
+          </div>
+          {errors.images && <span className="error-message">{errors.images}</span>}
+
+          {uploadedImages.length > 0 && (
+            <div className="image-preview-list">
+              {uploadedImages.map((image, index) => (
+                <div key={index} className="image-preview-item">
+                  <img src={image.preview} alt={`Preview ${index + 1}`} />
+                  <button
+                    type="button"
+                    className="btn-remove-image"
+                    onClick={() => handleRemoveImage(index)}
+                    disabled={isSubmitting}
+                    title="Xóa ảnh"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {submitMessage && (

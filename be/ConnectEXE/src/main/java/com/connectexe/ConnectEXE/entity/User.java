@@ -40,6 +40,9 @@ public class User {
     @Column(name = "role", length = 20)
     private String role;
 
+    @Column(name = "status", length = 20)
+    private String status; // ACTIVE, INACTIVE, SUSPENDED
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

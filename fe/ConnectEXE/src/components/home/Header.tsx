@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Cookies from 'js-cookie';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './styles/Header.scss';
 import { RouteConst } from '../../constants/RouteConst';
-import { STORAGE_KEYS } from '../../constants/AuthConst';
+import { STORAGE_KEYS, USER_ROLES } from '../../constants/AuthConst';
 import { API_BASE_URL } from '../../constants/ApiConst';
 import logoPng from '../../../src/assets/logo.png';
 
@@ -26,8 +26,6 @@ interface User {
   role: string;
   status: string;
 }
-
-type NavSection = 'tin-tuc' | 'kham-pha-du-an' | 'binh-chon' | 'dien-dan' | null;
 
 function decodeCookieValue(value?: string) {
   if (!value) return '';
@@ -65,17 +63,46 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState<NavSection>('kham-pha-du-an');
-
-  const [isClickScrolling, setIsClickScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastClickedNavRef = useRef<NavSection>(null);
-  const scrollDetectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Scroll to top on initial load
+  useEffect(() => {
+    if (location.pathname === RouteConst.HOME && !location.hash) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, []);
+
   const readUserFromClient = useCallback(() => {
+    // Priority 1: Check localStorage first (remember me = true)
+    const lsUserId = localStorage.getItem(STORAGE_KEYS.USER_ID);
+    const lsFullName = localStorage.getItem(STORAGE_KEYS.USER_NAME) || '';
+    const lsRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE) || '';
+    if (lsUserId && lsFullName && lsRole) {
+      return {
+        userId: Number(lsUserId),
+        fullName: lsFullName,
+        role: lsRole,
+        status: 'ACTIVE',
+      } as User;
+    }
+    
+    // Priority 2: Check sessionStorage (remember me = false)
+    const ssUserId = sessionStorage.getItem(STORAGE_KEYS.USER_ID);
+    const ssFullName = sessionStorage.getItem(STORAGE_KEYS.USER_NAME) || '';
+    const ssRole = sessionStorage.getItem(STORAGE_KEYS.USER_ROLE) || '';
+    if (ssUserId && ssFullName && ssRole) {
+      return {
+        userId: Number(ssUserId),
+        fullName: ssFullName,
+        role: ssRole,
+        status: 'ACTIVE',
+      } as User;
+    }
+    
+    // Priority 3: Fallback to cookies (for OAuth/Google login or old sessions)
     const cookieUserId = Cookies.get('userId');
     const cookieFullName = decodeCookieValue(Cookies.get('fullName'));
     const cookieRole = decodeCookieValue(Cookies.get('role'));
@@ -89,18 +116,7 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
         status: cookieStatus,
       } as User;
     }
-
-    const lsUserId = localStorage.getItem(STORAGE_KEYS.USER_ID);
-    const lsFullName = localStorage.getItem(STORAGE_KEYS.USER_NAME) || '';
-    const lsRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE) || '';
-    if (lsUserId && lsFullName && lsRole) {
-      return {
-        userId: Number(lsUserId),
-        fullName: lsFullName,
-        role: lsRole,
-        status: 'ACTIVE',
-      } as User;
-    }
+    
     return null;
   }, []);
 
@@ -118,104 +134,16 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
     if (!isProfileDropdownOpen) return;
     const handleClick = (e: MouseEvent) => {
       const dropdown = document.querySelector('.user-dropdown');
-      if (dropdown && !dropdown.contains(e.target as Node)) {
+      const avatarButton = document.querySelector('.user-avatar-button');
+      const target = e.target as Node;
+      
+      if (dropdown && !dropdown.contains(target) && avatarButton && !avatarButton.contains(target)) {
         setIsProfileDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [isProfileDropdownOpen]);
-
-  useEffect(() => {
-    if (location.pathname !== RouteConst.HOME) {
-      setActiveNav(null);
-      return;
-    }
-
-    const navSections: Exclude<NavSection, null>[] = ['kham-pha-du-an', 'tin-tuc', 'binh-chon', 'dien-dan'];
-    const sectionIds: Record<Exclude<NavSection, null>, string[]> = {
-      'kham-pha-du-an': ['kham-pha-du-an-hero', 'kham-pha-du-an-featured', 'kham-pha-du-an-products'],
-      'tin-tuc': ['tin-tuc-gallery', 'tin-tuc-stats', 'tin-tuc-partners'],
-      'binh-chon': ['binh-chon'],
-      'dien-dan': ['dien-dan'],
-    };
-
-    const detectActiveSection = () => {
-      if (isClickScrolling) return;
-      if (lastClickedNavRef.current && Date.now() - (window as any)._lastNavClickTime < 2500) return;
-
-      // Tìm section đầu tiên nằm trong viewport (từ top xuống)
-      const viewportHeight = window.innerHeight;
-      const scrollY = window.scrollY;
-      const checkPoint = scrollY + viewportHeight * 0.3; // Check ở 30% từ top màn hình
-
-      for (const navKey of navSections) {
-        for (const sectionId of sectionIds[navKey]) {
-          const element = document.getElementById(sectionId);
-          if (element) {
-            const rect = element.getBoundingClientRect();
-            const elementTop = rect.top + scrollY;
-            const elementBottom = elementTop + rect.height;
-            
-            // Nếu checkpoint nằm trong section này
-            if (checkPoint >= elementTop && checkPoint <= elementBottom) {
-              setActiveNav(navKey);
-              return;
-            }
-          }
-        }
-      }
-    };
-
-    const handleScroll = () => {
-      if (scrollDetectTimeoutRef.current) {
-        clearTimeout(scrollDetectTimeoutRef.current);
-      }
-      // Chỉ detect sau khi scroll dừng 150ms
-      scrollDetectTimeoutRef.current = setTimeout(detectActiveSection, 150);
-    };
-
-    // Detect ban đầu
-    detectActiveSection();
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-      if (scrollDetectTimeoutRef.current) {
-        clearTimeout(scrollDetectTimeoutRef.current);
-      }
-    };
-  }, [location.pathname, isClickScrolling]);
-
-  const handleNavClick = (event: React.MouseEvent<HTMLAnchorElement>, navKey: NavSection, elementId: string) => {
-    if (location.pathname !== RouteConst.HOME) {
-      navigate(`${RouteConst.HOME}#${elementId}`);
-      return;
-    }
-    event.preventDefault();
-    const element = document.getElementById(elementId);
-    if (element) {
-      setIsClickScrolling(true);
-      setActiveNav(navKey);
-      lastClickedNavRef.current = navKey;
-      (window as any)._lastNavClickTime = Date.now(); // Lưu thời gian click
-      
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-      scrollTimeoutRef.current = setTimeout(() => {
-        setIsClickScrolling(false);
-      }, 2000); // Tăng lên 2 giây để đảm bảo scroll xong mới cho observer hoạt động
-    }
-  };
-  
-  // ***** KHỐI CODE GÂY LỖI ĐÃ ĐƯỢC XÓA BỎ *****
 
   useEffect(() => {
     if (location.hash) {
@@ -259,38 +187,103 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
           <Link to={RouteConst.HOME} className="site-logo" aria-label="Connect EXE Home">
             <img src={logoPng} alt="Connect EXE Logo" className="site-logo__symbol" />
           </Link>
-          <nav className="center-nav">
+          
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="mobile-menu-toggle"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle Menu"
+          >
+            <span className={`hamburger ${isMobileMenuOpen ? 'active' : ''}`}>
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </button>
+          
+          <nav className={`center-nav ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
             <Link 
-              to={`${RouteConst.HOME}#kham-pha-du-an-hero`} 
-              className={`nav-item ${activeNav === 'kham-pha-du-an' ? 'nav-featured' : ''}`}
-              onClick={(e) => handleNavClick(e, 'kham-pha-du-an', 'kham-pha-du-an-hero')}
-            >
-              Khám phá dự án
-            </Link>
-            <Link 
-              to={`${RouteConst.HOME}#tin-tuc-gallery`} 
-              className={`nav-item ${activeNav === 'tin-tuc' ? 'nav-featured' : ''}`}
-              onClick={(e) => handleNavClick(e, 'tin-tuc', 'tin-tuc-gallery')}
+              to={RouteConst.PROJECTS.NEWS} 
+              className={`nav-item ${location.pathname === RouteConst.PROJECTS.NEWS ? 'nav-featured' : ''}`}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Tin Tức
             </Link>
             <Link 
-              to={`${RouteConst.HOME}#binh-chon`} 
-              className={`nav-item ${activeNav === 'binh-chon' ? 'nav-featured' : ''}`}
-              onClick={(e) => handleNavClick(e, 'binh-chon', 'binh-chon')}
+              to={RouteConst.PROJECTS.EXPLORE} 
+              className={`nav-item ${location.pathname === RouteConst.PROJECTS.EXPLORE ? 'nav-featured' : ''}`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Khám phá dự án
+            </Link>
+            <Link 
+              to={RouteConst.PROJECTS.VOTING} 
+              className={`nav-item ${location.pathname === RouteConst.PROJECTS.VOTING ? 'nav-featured' : ''}`}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Bình chọn
             </Link>
             <Link 
               to={RouteConst.FORUM.ROOT} 
               className={`nav-item ${location.pathname.startsWith('/forum') ? 'nav-featured' : ''}`}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Diễn đàn
             </Link>
+            
+            {/* Admin Dashboard Link */}
+            {user && (user.role.toUpperCase() === 'ADMIN' || user.role === USER_ROLES.ADMIN) && (
+              <Link 
+                to={RouteConst.ADMIN.ROOT} 
+                className={`nav-item ${location.pathname.startsWith('/admin') ? 'nav-featured' : ''}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
+            
+            {/* Mobile: User menu inside navigation */}
+            {user && (
+              <>
+                <div className="mobile-nav-divider"></div>
+                <div className="mobile-user-section">
+                  <div className="mobile-user-header">
+                    <div 
+                      className="mobile-user-avatar"
+                      style={{ background: getAvatarColor(user.fullName) }}
+                    >
+                      <span className="user-initials">{getInitials(user.fullName)}</span>
+                    </div>
+                    <div className="mobile-user-info">
+                      <div className="mobile-user-name">{user.fullName}</div>
+                      <div className="mobile-user-role">{capitalizeFirstLetter(user.role)}</div>
+                    </div>
+                  </div>
+                  
+                  {/* Admin Dashboard for Mobile */}
+                  {(user.role.toUpperCase() === 'ADMIN' || user.role === USER_ROLES.ADMIN) && (
+                    <button className="mobile-menu-item" onClick={() => { navigate(RouteConst.ADMIN.ROOT); setIsMobileMenuOpen(false); }}>
+                      <span className="mobile-menu-icon">📊</span> Dashboard
+                    </button>
+                  )}
+                  
+                  <button className="mobile-menu-item" onClick={() => { onEditProfile?.(); setIsMobileMenuOpen(false); }}>
+                    <span className="mobile-menu-icon">👤</span> Chỉnh sửa hồ sơ
+                  </button>
+                  <button className="mobile-menu-item" onClick={() => { onChangePassword?.(); setIsMobileMenuOpen(false); }}>
+                    <span className="mobile-menu-icon">🔒</span> Đổi mật khẩu
+                  </button>
+                  <button className="mobile-menu-item logout" onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} disabled={loading}>
+                    <span className="mobile-menu-icon">🚪</span> {loading ? 'Đang đăng xuất...' : 'Đăng xuất'}
+                  </button>
+                </div>
+              </>
+            )}
           </nav>
           <div className="header-actions">
             {user ? (
               <div className="user-menu">
+                {/* Desktop: Avatar Button */}
                 <button 
                   className="user-avatar-button" 
                   onClick={() => setIsProfileDropdownOpen(v => !v)} 
@@ -300,6 +293,7 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
                 >
                   <span className="user-initials">{getInitials(user.fullName)}</span>
                 </button>
+                
                 {isProfileDropdownOpen && (
                   <div className="user-dropdown">
                     <div className="dropdown-user-info">
@@ -307,6 +301,7 @@ const Header: React.FC<HeaderProps> = ({ breadcrumbs, onEditProfile, onChangePas
                       <div className="dropdown-user-role">{capitalizeFirstLetter(user.role)}</div>
                     </div>
                     <div className="dropdown-divider"></div>
+                    
                     <button className="dropdown-item" onClick={() => { onEditProfile?.(); setIsProfileDropdownOpen(false); }}>
                       <span className="dropdown-item-icon">👤</span> Chỉnh sửa hồ sơ
                     </button>

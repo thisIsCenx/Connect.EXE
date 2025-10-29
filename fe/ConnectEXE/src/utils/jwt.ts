@@ -15,44 +15,54 @@ export interface DecodedToken {
 }
 
 /**
- * Save access token to localStorage
+ * Save access token to storage (localStorage or sessionStorage based on remember parameter)
  */
-export const saveToken = (token: string): void => {
-  localStorage.setItem(TOKEN_KEY, token);
+export const saveToken = (token: string, remember: boolean = false): void => {
+  const storage = remember ? localStorage : sessionStorage;
+  storage.setItem(TOKEN_KEY, token);
 };
 
 /**
- * Save refresh token to localStorage
+ * Save refresh token to storage
  */
-export const saveRefreshToken = (token: string): void => {
-  localStorage.setItem(REFRESH_TOKEN_KEY, token);
+export const saveRefreshToken = (token: string, remember: boolean = false): void => {
+  const storage = remember ? localStorage : sessionStorage;
+  storage.setItem(REFRESH_TOKEN_KEY, token);
 };
 
 /**
- * Get access token from localStorage
+ * Get access token from storage (check both localStorage and sessionStorage)
  */
 export const getToken = (): string | null => {
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
 };
 
 /**
- * Get refresh token from localStorage
+ * Get refresh token from storage
  */
 export const getRefreshToken = (): string | null => {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  return localStorage.getItem(REFRESH_TOKEN_KEY) || sessionStorage.getItem(REFRESH_TOKEN_KEY);
 };
 
 /**
- * Remove tokens from localStorage
+ * Remove tokens from storage (both localStorage and sessionStorage)
  */
 export const removeTokens = (): void => {
+  // Remove from both storages to be safe
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
-  // Also remove old userId, fullName, role from localStorage
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+  
+  // Also remove old userId, fullName, role from both storages
   localStorage.removeItem('userId');
   localStorage.removeItem('fullName');
   localStorage.removeItem('role');
   localStorage.removeItem('status');
+  sessionStorage.removeItem('userId');
+  sessionStorage.removeItem('fullName');
+  sessionStorage.removeItem('role');
+  sessionStorage.removeItem('status');
 };
 
 /**
